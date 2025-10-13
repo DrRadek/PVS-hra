@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using PVShra.Functions;
 
 namespace PVShra
 {
@@ -10,10 +11,10 @@ namespace PVShra
         [Export] public int XP { get; private set; } = 0;
         [Export] public int Level { get; private set; } = 1;
         
-        private List<Functions.FunctionType> _unlockedFunctions = new List<Functions.FunctionType>();
+        private List<FunctionType> _unlockedFunctions = new List<FunctionType>();
         private int _currentFunctionIndex = 0;
         
-        public Functions.FunctionType CurrentFunction => _unlockedFunctions[_currentFunctionIndex];
+        public FunctionType CurrentFunction => _unlockedFunctions[_currentFunctionIndex];
         
         // XP thresholds for leveling up
         private int[] _xpThresholds = { 50, 150, 300, 500, 750, 1000 };
@@ -21,7 +22,7 @@ namespace PVShra
         public override void _Ready()
         {
             // Start with Sin function unlocked
-            _unlockedFunctions.Add(Functions.FunctionType.Sin);
+            _unlockedFunctions.Add(FunctionType.Sin);
         }
         
         public void AddScore(int points)
@@ -49,13 +50,13 @@ namespace PVShra
         
         private void UnlockNewFunction()
         {
-            Functions.FunctionType[] allFunctions = {
-                Functions.FunctionType.Sin,
-                Functions.FunctionType.Cos,
-                Functions.FunctionType.Linear,
-                Functions.FunctionType.Quadratic,
-                Functions.FunctionType.Tan,
-                Functions.FunctionType.Exponential
+            FunctionType[] allFunctions = {
+                FunctionType.Sin,
+                FunctionType.Cos,
+                FunctionType.Linear,
+                FunctionType.Quadratic,
+                FunctionType.Tan,
+                FunctionType.Exponential
             };
             
             foreach (var func in allFunctions)
@@ -63,7 +64,7 @@ namespace PVShra
                 if (!_unlockedFunctions.Contains(func))
                 {
                     _unlockedFunctions.Add(func);
-                    GD.Print($"Unlocked new function: {Functions.FunctionFactory.CreateFunction(func).GetName()}");
+                    GD.Print($"Unlocked new function: {FunctionFactory.CreateFunction(func).GetName()}");
                     break;
                 }
             }
@@ -80,7 +81,7 @@ namespace PVShra
                     if (index < _unlockedFunctions.Count)
                     {
                         _currentFunctionIndex = index;
-                        GD.Print($"Switched to function: {Functions.FunctionFactory.CreateFunction(CurrentFunction).GetName()}");
+                        GD.Print($"Switched to function: {FunctionFactory.CreateFunction(CurrentFunction).GetName()}");
                         UpdateUI();
                     }
                 }

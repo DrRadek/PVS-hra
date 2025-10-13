@@ -1,5 +1,7 @@
 using Godot;
 using System;
+using PVShra.Functions;
+using PVShra.Enemy;
 
 namespace PVShra.Projectile
 {
@@ -10,16 +12,16 @@ namespace PVShra.Projectile
         [Export] public float Scale = 1.0f;
         
         public Vector2 Direction { get; set; }
-        public Functions.FunctionType FunctionType { get; set; } = Functions.FunctionType.Sin;
+        public FunctionType FunctionType { get; set; } = FunctionType.Sin;
         
         private float _distanceTraveled = 0.0f;
         private Vector2 _startPosition;
-        private Functions.IFunction _function;
+        private IFunction _function;
         
         public override void _Ready()
         {
             _startPosition = GlobalPosition;
-            _function = Functions.FunctionFactory.CreateFunction(FunctionType);
+            _function = FunctionFactory.CreateFunction(FunctionType);
             
             BodyEntered += OnBodyEntered;
         }
@@ -38,7 +40,7 @@ namespace PVShra.Projectile
         
         private void OnBodyEntered(Node2D body)
         {
-            if (body is Enemy.Enemy enemy)
+            if (body is PVShra.Enemy.Enemy enemy)
             {
                 float damage = CalculateDamage();
                 enemy.TakeDamage(damage);

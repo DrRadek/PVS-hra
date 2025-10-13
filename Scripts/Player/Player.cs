@@ -1,5 +1,7 @@
 using Godot;
 using System;
+using PVShra;
+using PVShra.Projectile;
 
 namespace PVShra.Player
 {
@@ -64,7 +66,7 @@ namespace PVShra.Player
         {
             if (_projectileScene == null || _gameManager == null) return;
             
-            var projectile = _projectileScene.Instantiate<Projectile.Projectile>();
+            var projectile = _projectileScene.Instantiate<Projectile>();
             projectile.GlobalPosition = GlobalPosition;
             projectile.Direction = direction;
             projectile.FunctionType = _gameManager.CurrentFunction;

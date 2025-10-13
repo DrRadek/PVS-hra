@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using PVShra.Functions;
 
 namespace PVShra
 {
@@ -42,20 +43,20 @@ namespace PVShra
             AddChild(_functionsListLabel);
         }
         
-        public void UpdateDisplay(int score, int xp, int level, Functions.FunctionType currentFunction, List<Functions.FunctionType> unlockedFunctions)
+        public void UpdateDisplay(int score, int xp, int level, FunctionType currentFunction, List<FunctionType> unlockedFunctions)
         {
             _scoreLabel.Text = $"Score: {score}";
             _xpLabel.Text = $"XP: {xp}";
             _levelLabel.Text = $"Level: {level}";
             
-            var currentFunc = Functions.FunctionFactory.CreateFunction(currentFunction);
+            var currentFunc = FunctionFactory.CreateFunction(currentFunction);
             _functionLabel.Text = $"Current Function: {currentFunc.GetName()}";
             
             // Show all unlocked functions
             string functionsList = "Unlocked Functions:\n";
             for (int i = 0; i < unlockedFunctions.Count; i++)
             {
-                var func = Functions.FunctionFactory.CreateFunction(unlockedFunctions[i]);
+                var func = FunctionFactory.CreateFunction(unlockedFunctions[i]);
                 functionsList += $"  [{i + 1}] {func.GetName()}\n";
             }
             _functionsListLabel.Text = functionsList;
