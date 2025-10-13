@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Project Tracker — Fixed Column & Links</title>
+<style>
+:root{--card-w:200px;--card-h:110px;--col-w:240;--pad-left:40;--strip-w:12px;}
+body{margin:0;font-family:Inter,system-ui,Arial;background:#f6f7fb;color:#111;overflow:hidden;}
+header{display:flex;align-items:center;gap:8px;padding:10px;border-bottom:1px solid #e6e9ef;background:#fff;}
+header button{padding:8px 10px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer;}
+#boardWrap{position:absolute;left:0;top:48px;right:320px;bottom:0;overflow:auto;background:linear-gradient(#fbfcfe,#f0f2f7);}
+#board{position:relative;width:2000px;height:1400px;}
+svg#connections{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;}
+.issue{position:absolute;width:var(--card-w);height:var(--card-h);box-sizing:border-box;padding:10px;border-radius:9px;color:#fff;cursor:pointer;user-select:none;z-index:2;display:flex;flex-direction:column;justify-content:space-between;border:2px solid transparent;}
+.issue.selected{border-color:black;box-shadow:0 8px 18px rgba(0,0,0,0.18);}
+.issue .title{font-weight:700;font-size:13px;}
+.issue .meta{font-size:12px;}
+.issue .type-strip{position:absolute;right:0;top:0;width:var(--strip-w);height:100%;border-top-right-radius:9px;border-bottom-right-radius:9px;}
+.issue .type-text{position:absolute;bottom:4px;right:18px;font-size:11px;color:#fff;font-weight:600;}
+#sidebar{position:fixed;right:0;top:0;width:320px;height:100vh;background:#fff;border-left:1px solid #e6e9ef;padding:14px;box-sizing:border-box;display:flex;flex-direction:column;gap:8px;overflow:auto;}
+#sidebar h3{margin:4px 0 8px;font-size:16px;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field input,.field select,.field textarea{padding:8px;border:1px solid #ddd;border-radius:6px;}
+.sidebar-buttons{display:flex;gap:8px;margin-top:auto;}
+.sidebar-buttons button{cursor:pointer;}
+.sidebar-buttons button:hover{opacity:0.85;}
+.marquee{position:absolute;border:1px dashed rgba(0,0,0,0.5);background:rgba(0,0,0,0.04);z-index:50;}
+.note{font-size:12px;color:#666;}
+</style>
+</head>
+<body>
+
+<header>
+  <button id="btnCreate">➕ Create Issue</button>
+  <button id="btnSave">💾 Save data.js</button>
+  <div class="note">Shift=multi-select • Ctrl=link toggle • Click=edit</div>
+</header>
+
+<div id="boardWrap">
+  <div id="board">
+    <svg id="connections"></svg>
+  </div>
+</div>
+
+<aside id="sidebar">
+  <h3 id="sideTitle">Edit Issue</h3>
+  <div class="field"><label>Type</label><select id="fldType"></select></div>
+  <div class="field"><label>Title</label><input id="fldTitle"/></div>
+  <div class="field"><label>Link (URL)</label><input id="fldLink"/></div>
+  <div class="field"><label>Status</label><select id="fldStatus"></select></div>
+  <div class="field"><label>Column</label><input id="fldColumn" type="number" readonly/></div>
+  <div class="field"><label>Row (px)</label><input id="fldRow" type="number" readonly/></div>
+  <div class="sidebar-buttons">
+    <button id="btnSideCreate">Create</button>
+    <button id="btnSideDelete" style="background:#f8d7da;border:1px solid #f5c6cb">Delete</button>
+    <button id="btnSideClose" style="background:#eee;border:1px solid #ccc;">Close</button>
+  </div>
+</aside>
+
+<script src="data.js"></script>
+<script>
+const COL_W = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--col-w'))||240;
+const PAD_LEFT = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pad-left'))||40;
+const STRIP_W = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--strip-w'))||12;
+
+const boardWrap=document.getElementById('boardWrap'), board=document.getElementById('board'), svg=document.getElementById('connections');
+const btnCreate=document.getElementById('btnCreate'), btnSave=document.getElementById('btnSave');
+const side=document.getElementById('sidebar'), sideTitle=document.getElementById('sideTitle');
+const fldType=document.getElementById('fldType'), fldTitle=document.getElementById('fldTitle');
+const fldLink=document.getElementById('fldLink'), fldStatus=document.getElementById('fldStatus');
+const fldColumn=document.getElementById('fldColumn'), fldRow=document.getElementById('fldRow');
+const btnSideCreate=document.getElementById('btnSideCreate'), btnSideDelete=document.getElementById('btnSideDelete'), btnSideClose=document.getElementById('btnSideClose');
+
+let elements=new Map(), selected=new Set(), drag=null, ctrlLinkSource=null, editingId=null;
+
+const COL_SPACING = COL_W - parseInt(getComputedStyle(document.documentElement).getPropertyValue('--card-w')) || 40;
+
+function buildTypes(){ fldType.innerHTML=''; ISSUE_TYPES.forEach(t=>{ const opt=document.createElement('option'); opt.value=t.id; opt.textContent=t.name; fldType.appendChild(opt); }); }
+function buildStatuses(){ fldStatus.innerHTML=''; STATUS_TYPES.forEach(s=>{ const opt=document.createElement('option'); opt.value=s.id; opt.textContent=s.name; fldStatus.appendChild(opt); }); }
+buildTypes(); buildStatuses();
+
+function statusColor(issue){ const s=STATUS_TYPES.find(st=>st.id===issue.status)||STATUS_TYPES[0]; return s.color||'#666'; }
+function typeColor(issue){ const t=ISSUE_TYPES.find(tt=>tt.id===issue.type)||ISSUE_TYPES[0]; return t.color||'#666'; }
+
+function createNode(issue,idx){
+  const el=document.createElement('div'); el.className='issue'; el.dataset.id=issue.id;
+  el.style.background=statusColor(issue);
+  el.innerHTML=`<div class='title'>${issue.title}</div>
+  <div class='meta'><a href='${issue.link}' target='_blank' style='color:rgba(255,255,255,0.9)'>issue link</a></div>
+  <div class='meta'>${issue.status}</div>
+  <div class='type-strip' style='background:${typeColor(issue)}'></div>
+  <div class='type-text'>${issue.type}</div>`;
+  board.appendChild(el);
+  const col=(issue.column!=null)?issue.column:0;
+  const row=(issue.row!=null)?issue.row:idx*120;
+  el.style.left=(PAD_LEFT+col*COL_W)+'px'; el.style.top=row+'px';
+
+  // Click sets editingId and opens sidebar for that issue
+  el.addEventListener('click', e=>{
+      e.stopPropagation();
+      editingId = issue.id;
+      openSidebarFor(issue.id);
+      clearSelection();
+      selected.add(el); el.classList.add('selected');
+  });
+
+  // Mouse down for dragging
+  el.addEventListener('mousedown', e=>onMouseDown(e,el));
+  elements.set(issue.id,el); 
+  return el;
+}
+
+// Bind sidebar fields only once, update editingId dynamically
+fldTitle.addEventListener('input',()=>{ if(editingId) updateIssueField('title', fldTitle.value); });
+fldLink.addEventListener('input',()=>{ if(editingId) updateIssueField('link', fldLink.value); });
+fldStatus.addEventListener('input',()=>{ if(editingId) updateIssueField('status', fldStatus.value); });
+fldType.addEventListener('input',()=>{ if(editingId) updateIssueField('type', fldType.value); });
+
+function updateIssueField(field,value){
+  if(!editingId) return; 
+  const it=DATA.issues.find(i=>i.id===editingId); 
+  if(!it) return;
+  it[field]=value; 
+  const el=elements.get(editingId);
+  if(field==='status') el.style.background=statusColor(it);
+  if(field==='type'){ el.querySelector('.type-strip').style.background=typeColor(it); el.querySelector('.type-text').textContent=it.type; }
+  if(field==='title') el.querySelector('.title').textContent=value;
+  if(field==='link') el.querySelector('a').href=value;
+}
+
+function clientToBoardX(clientX){ return clientX+boardWrap.scrollLeft-COL_W/2 + COL_SPACING/2; }
+function computeColumnFromMouse(clientX){ const bx=clientToBoardX(clientX); return Math.max(0, Math.round((bx-PAD_LEFT)/COL_W)); }
+
+function normalizeLink(aId,bId){
+    const a = DATA.issues.find(i=>i.id===aId), b = DATA.issues.find(i=>i.id===bId);
+    if(!a || !b) return [aId,bId];
+    return (a.column <= b.column) ? [aId,bId] : [bId,aId];
+}
+
+function toggleLink(aId,bId){
+    const [fromId,toId] = normalizeLink(aId,bId);
+    const exists = DATA.links.some(([x,y])=>{
+        const [fx,fy]=normalizeLink(x,y);
+        return fx===fromId && fy===toId;
+    });
+    if(exists){
+        DATA.links = DATA.links.filter(([x,y])=>{
+            const [fx,fy]=normalizeLink(x,y);
+            return !(fx===fromId && fy===toId);
+        });
+    } else {
+        DATA.links.push([fromId,toId]);
+    }
+    render();
+}
+
+function drawLinks(){
+  svg.innerHTML=''; 
+  svg.setAttribute('width',board.clientWidth); svg.setAttribute('height',board.clientHeight);
+  if(!svg.querySelector('defs')){
+    const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
+    const m=document.createElementNS('http://www.w3.org/2000/svg','marker');
+    m.setAttribute('id','arrow'); m.setAttribute('markerWidth','10'); m.setAttribute('markerHeight','10');
+    m.setAttribute('refX','7'); m.setAttribute('refY','5'); m.setAttribute('orient','auto');
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path'); p.setAttribute('d','M0 0 L10 5 L0 10 z'); p.setAttribute('fill','#444'); m.appendChild(p); defs.appendChild(m); svg.appendChild(defs);
+  }
+  DATA.links.forEach(([aId,bId])=>{
+    const [fromId,toId]=normalizeLink(aId,bId);
+    const A=elements.get(fromId), B=elements.get(toId); if(!A||!B) return;
+    let ax=A.offsetLeft+A.offsetWidth, ay=A.offsetTop+A.offsetHeight/2;
+    let bx=B.offsetLeft, by=B.offsetTop+B.offsetHeight/2;
+    if(A.offsetLeft === B.offsetLeft && ay>by){ [ay,by]=[by,ay]; }
+    const mx=(ax+bx)/2;
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d',`M ${ax} ${ay} C ${mx} ${ay} ${mx} ${by} ${bx} ${by}`);
+    path.setAttribute('stroke','#444'); path.setAttribute('fill','none'); path.setAttribute('stroke-width','2');
+    path.setAttribute('marker-end','url(#arrow)'); svg.appendChild(path);
+  });
+}
+
+function clearSelection(){ selected.forEach(s=>s.classList.remove('selected')); selected.clear(); }
+function clearCtrlOutline(){ elements.forEach(el=>el.style.outline=''); }
+
+function openSidebarFor(id){ editingId=id; const issue=DATA.issues.find(i=>i.id===id); sideTitle.textContent='Edit Issue'; fldTitle.value=issue.title; fldLink.value=issue.link; fldStatus.value=issue.status; fldColumn.value=issue.column||0; fldRow.value=issue.row||0; fldType.value=issue.type||ISSUE_TYPES[0].id; }
+function openSidebarNew(){ editingId=null; sideTitle.textContent='Create Issue'; fldTitle.value='New issue'; fldLink.value=''; fldStatus.value=STATUS_TYPES[0].id; fldColumn.value=0; fldRow.value=0; fldType.value=ISSUE_TYPES[0].id; }
+
+btnCreate.addEventListener('click',()=>{ openSidebarNew(); side.scrollTop=0; });
+btnSideCreate.addEventListener('click',()=>{
+  let n=1; while(DATA.issues.some(x=>x.id==='issue_'+n)) n++;
+  const id='issue_'+n;
+  const newIssue={id:id,title:fldTitle.value,link:fldLink.value,status:fldStatus.value,type:fldType.value,column:0,row:0};
+  DATA.issues.push(newIssue); render();
+});
+btnSideDelete.addEventListener('click',()=>{
+  if(!editingId) return; if(!confirm('Delete issue '+editingId+'?')) return;
+  DATA.issues=DATA.issues.filter(i=>i.id!==editingId); DATA.links=DATA.links.filter(([a,b])=>a!==editingId && b!==editingId); editingId=null; render();
+});
+btnSideClose.addEventListener('click',()=>{ editingId=null; });
+
+btnSave.addEventListener('click',()=>{
+  const content='const ISSUE_TYPES = '+JSON.stringify(ISSUE_TYPES,null,2)+';\nconst STATUS_TYPES = '+JSON.stringify(STATUS_TYPES,null,2)+';\nconst DATA = '+JSON.stringify(DATA,null,2)+';';
+  const blob=new Blob([content],{type:'application/javascript'}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='data.js'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+});
+
+
+board.addEventListener('mousedown', e => {
+  // Only trigger if clicking on empty space
+  if(e.target !== board) return;
+
+  // Clear any current selection
+  clearSelection();
+
+  // Switch sidebar to create mode
+  openSidebarNew();
+});
+
+// --- Drag & Multi-Select Marquee ---
+let marquee=null;
+boardWrap.addEventListener('mousedown', e => {
+    if(e.target!==board) return;
+    if(e.shiftKey || e.ctrlKey) return;
+    clearSelection();
+    const rect=boardWrap.getBoundingClientRect();
+    const startX=e.clientX - rect.left + boardWrap.scrollLeft;
+    const startY=e.clientY - rect.top + boardWrap.scrollTop;
+    marquee = document.createElement('div');
+    marquee.className='marquee';
+    marquee.style.left=startX+'px'; marquee.style.top=startY+'px'; marquee.style.width='0px'; marquee.style.height='0px';
+    board.appendChild(marquee);
+
+    const onMove = ev=>{
+        const curX=ev.clientX - rect.left + boardWrap.scrollLeft;
+        const curY=ev.clientY - rect.top + boardWrap.scrollTop;
+        marquee.style.left=Math.min(startX,curX)+'px';
+        marquee.style.top=Math.min(startY,curY)+'px';
+        marquee.style.width=Math.abs(curX-startX)+'px';
+        marquee.style.height=Math.abs(curY-startY)+'px';
+    };
+    const onUp = ev=>{
+        if(marquee){
+            const r=marquee.getBoundingClientRect();
+            elements.forEach(el=>{
+                const er=el.getBoundingClientRect();
+                if(er.left<r.right && er.right>r.left && er.top<r.bottom && er.bottom>r.top){
+                    selected.add(el);
+                    el.classList.add('selected');
+                }
+            });
+            marquee.remove(); marquee=null;
+        }
+        window.removeEventListener('mousemove',onMove);
+        window.removeEventListener('mouseup',onUp);
+    };
+    window.addEventListener('mousemove',onMove);
+    window.addEventListener('mouseup',onUp);
+});
+
+function onMouseDown(ev,el){
+  ev.preventDefault(); ev.stopPropagation();
+  const id=el.dataset.id;
+  if(ev.ctrlKey){ 
+    if(!ctrlLinkSource){ ctrlLinkSource=id; el.style.outline='3px dashed rgba(255,255,255,0.6)'; } 
+    else if(ctrlLinkSource===id){ ctrlLinkSource=null; el.style.outline=''; } 
+    else { toggleLink(ctrlLinkSource,id); clearCtrlOutline(); ctrlLinkSource=null; }
+    return;
+  }
+
+  if(!ev.shiftKey){
+      selected.forEach(s=>{
+          if(s!==el) s.classList.remove('selected');
+      });
+      selected = new Set([el]);
+  } else {
+      selected.add(el);
+  }
+  el.classList.add('selected');
+
+  drag={startX:ev.clientX,startY:ev.clientY,anchorId:id,items:new Map()};
+  selected.forEach(it=>{ const col=Math.round((it.offsetLeft-PAD_LEFT)/COL_W); drag.items.set(it,{x:it.offsetLeft,y:it.offsetTop,col}); });
+
+  const onMove=e=>{
+    if(!drag) return;
+    const dx=e.clientX-drag.startX; const dy=e.clientY-drag.startY;
+    const targetCol=computeColumnFromMouse(e.clientX);
+    const colDelta=targetCol-drag.items.get(el).col;
+    drag.items.forEach((orig,dom)=>{
+      const newCol=orig.col+colDelta; const newX=PAD_LEFT+newCol*COL_W;
+      let newY=orig.y+dy; newY=Math.max(0,newY);
+      dom.style.left=newX+'px'; dom.style.top=newY+'px';
+      const maxRight=newX+dom.offsetWidth+50; const maxBottom=newY+dom.offsetHeight+50;
+      if(maxRight>board.offsetWidth) board.style.width=maxRight+'px';
+      if(maxBottom>board.offsetHeight) board.style.height=maxBottom+'px';
+      const issue=DATA.issues.find(i=>i.id===dom.dataset.id);
+      issue.column=newCol; issue.row=newY;
+      fldColumn.value=newCol; fldRow.value=newY;
+    });
+    drawLinks();
+  };
+
+  const onUp=e=>{ drag=null; window.removeEventListener('mousemove',onMove); window.removeEventListener('mouseup',onUp); };
+  window.addEventListener('mousemove',onMove); window.addEventListener('mouseup',onUp);
+}
+
+function render(){
+  let maxX=0,maxY=0;
+  DATA.issues.forEach((it,i)=>{ 
+    maxX=Math.max(maxX,PAD_LEFT+(it.column+1)*COL_W+100); 
+    maxY=Math.max(maxY,(it.row||i*120)+parseInt(getComputedStyle(document.documentElement).getPropertyValue('--card-h'))+100);
+  });
+  board.style.width=maxX+'px'; board.style.height=maxY+'px';
+  board.querySelectorAll('.issue').forEach(n=>n.remove()); elements.clear();
+  DATA.issues.forEach((it,i)=>createNode(it,i));
+  drawLinks();
+}
+
+render(); boardWrap.addEventListener('scroll',drawLinks); window.addEventListener('resize',drawLinks);
+</script>
+</body>
+</html>
