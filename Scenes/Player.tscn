@@ -16,3 +16,6 @@ shape = SubResource("CircleShape2D_player")
 [node name="Sprite2D" type="Polygon2D" parent="."]
 color = Color(0, 0.5, 1, 1)
 polygon = PackedVector2Array(-12, -12, 12, -12, 12, 12, -12, 12)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+enabled = true

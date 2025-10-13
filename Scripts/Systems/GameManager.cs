@@ -23,6 +23,9 @@ namespace PVShra
         {
             // Start with Sin function unlocked
             _unlockedFunctions.Add(FunctionType.Sin);
+            
+            // Initialize UI
+            CallDeferred(nameof(UpdateUI));
         }
         
         public void AddScore(int points)
