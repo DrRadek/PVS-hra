@@ -4,8 +4,10 @@
 
 # Godot-specific ignores
 .import/
+*.import
 export.cfg
 export_credentials.cfg
+/android/
 
 # Imported translations (automatically generated from CSV files)
 *.translation
@@ -17,5 +19,3 @@ mono_crash.*.json
 
 # Visual studio ignores
 .vs/
-*.csproj
-*.csproj.old
