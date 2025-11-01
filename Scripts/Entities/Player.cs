@@ -1,18 +1,25 @@
 using Godot;
 using System;
 
-public partial class Player : RigidBody2D
+public partial class Player : RigidBody2D, IHittable
 {
     [Export] NodePath healthManagerLocation;
-    IHealthManager healthManager;
+    AbstractHealthManager healthManager;
+
+    public void GetHit(float amount, bool isAbsolute)
+    {
+        healthManager.GetHit(amount, isAbsolute);
+    }
 
     public override void _Ready()
     {
-        healthManager = (IHealthManager)GetNode(healthManagerLocation);
-        healthManager.ConnecOnDeath(OnDeath2);
+        healthManager = (AbstractHealthManager)GetNode(healthManagerLocation);
+        healthManager.OnDeath += OnDeath;
+
+
     }
 
-    void OnDeath2()
+    void OnDeath()
     {
         // TODO: implement
     }

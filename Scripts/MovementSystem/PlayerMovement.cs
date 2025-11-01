@@ -10,7 +10,10 @@ public partial class PlayerMovement : AbstractMovement
 
         if (enabled)
         {
-            // TODO: implement logic to move player based on inputs
+            // TODO: implement logic to move player based on inputs (call Move from the MovableObject)
+            // Available moves: MoveRight, MoveLeft, MoveDown, MoveUp
+            // Example: Input.IsActionPressed(MoveActions.MoveLeft);
+            // Input.GetVector can also be used (see https://docs.godotengine.org/en/stable/tutorials/2d/2d_movement.html)
         }
     }
 }

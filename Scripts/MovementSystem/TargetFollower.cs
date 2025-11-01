@@ -12,7 +12,7 @@ public partial class TargetFollower : AbstractMovement
 
         if (enabled)
         {
-            // TODO: implement logic to move the object towards the target
+            // TODO: implement logic to move the object towards the target (call Move from the MovableObject)
         }
     }
 

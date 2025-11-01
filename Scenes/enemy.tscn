@@ -1,13 +1,18 @@
-[gd_scene load_steps=5 format=3 uid="uid://b8vp0fwf6vtkx"]
+[gd_scene load_steps=8 format=3 uid="uid://b8vp0fwf6vtkx"]
 
 [ext_resource type="Texture2D" uid="uid://t0pmlrblrces" path="res://icon.svg" id="1_afpow"]
+[ext_resource type="Script" uid="uid://bsep7jruol4tf" path="res://Scripts/Entities/Enemy.cs" id="1_ghaa6"]
 [ext_resource type="Script" uid="uid://dtli7c7ukojbp" path="res://Scripts/MovementSystem/MovableObject.cs" id="2_287tu"]
 [ext_resource type="Script" uid="uid://da6sqibwe3cw4" path="res://Scripts/MovementSystem/TargetFollower.cs" id="3_afpow"]
+[ext_resource type="Script" uid="uid://bnay44e4hcekj" path="res://Scripts/HealthSystem/HealthManager.cs" id="4_0830c"]
+[ext_resource type="Script" uid="uid://c7y8pwsyi3q13" path="res://Scripts/HealthSystem/Health.cs" id="5_ghaa6"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cvnsp"]
 size = Vector2(128, 128)
 
-[node name="enemy" type="RigidBody2D"]
+[node name="enemy" type="RigidBody2D" node_paths=PackedStringArray("targetFollower")]
+script = ExtResource("1_ghaa6")
+targetFollower = NodePath("Scripts/MovementSystem/TargetFollower")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_cvnsp")
@@ -19,10 +24,15 @@ texture = ExtResource("1_afpow")
 
 [node name="MovementSystem" type="Node" parent="Scripts"]
 
-[node name="TargetFollower" type="Node" parent="Scripts/MovementSystem"]
-script = ExtResource("3_afpow")
-movableObject = null
-
 [node name="MovableObject" type="Node" parent="Scripts/MovementSystem" node_paths=PackedStringArray("rb")]
 script = ExtResource("2_287tu")
 rb = NodePath("../../..")
+
+[node name="TargetFollower" type="Node" parent="Scripts/MovementSystem"]
+script = ExtResource("3_afpow")
+
+[node name="HealthManager" type="Node" parent="Scripts"]
+script = ExtResource("4_0830c")
+
+[node name="Health" type="Node" parent="Scripts/HealthManager"]
+script = ExtResource("5_ghaa6")

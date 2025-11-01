@@ -1,17 +1,21 @@
 using Godot;
 using System;
 
-public partial class HealthManager : Node, IHealthManager
+public partial class HealthManager : AbstractHealthManager
 {
-    [Signal] public delegate void OnDeathSignalEventHandler();
+    // Note: here we can add more health types (shield, ...)
+    [Export] AbstractHealth health;
 
-    public void ConnecOnDeath(Action action)
+    public override void GetHit(float amount, bool absolute = true)
     {
-        Connect(SignalName.OnDeathSignal, Callable.From(action));
+        if (!health.GetHit(amount, absolute))
+        {
+            EmitSignalOnDeath();
+        }
     }
 
-    void TriggerDeath()
+    public override void Heal(float amount, bool absolute = true)
     {
-        EmitSignal(SignalName.OnDeathSignal);
+        health.Heal(amount, absolute);
     }
 }

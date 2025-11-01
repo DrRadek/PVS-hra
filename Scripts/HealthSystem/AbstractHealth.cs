@@ -4,10 +4,8 @@ using System;
 public abstract partial class AbstractHealth : Node
 {
     // True = survived
-    public abstract bool GetHitAbsolute(int amount);
-    // True = survived
-    public abstract bool GetHitRelative(int amount);
-    public abstract void HealAbsolute(int amount);
-    public abstract void HealRelative(int percentage);
+    public abstract bool GetHit(float amount, bool isAbsolute = true);
+
+    public abstract void Heal(float amount, bool isAbsolute = true);
 
 }
