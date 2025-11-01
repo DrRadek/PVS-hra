@@ -1,0 +1,39 @@
+[gd_scene load_steps=8 format=3 uid="uid://d1mseb2rcga46"]
+
+[ext_resource type="Texture2D" uid="uid://t0pmlrblrces" path="res://icon.svg" id="1_v0iea"]
+[ext_resource type="Script" uid="uid://du7molj5rieqc" path="res://Scripts/Entities/Player.cs" id="1_x3wgy"]
+[ext_resource type="Script" uid="uid://dtli7c7ukojbp" path="res://Scripts/MovementSystem/MovableObject.cs" id="2_6t5aa"]
+[ext_resource type="Script" uid="uid://deps4pfts1dt7" path="res://Scripts/MovementSystem/PlayerMovement.cs" id="3_vgqql"]
+[ext_resource type="Script" uid="uid://bnay44e4hcekj" path="res://Scripts/HealthSystem/HealthManager.cs" id="4_vgqql"]
+[ext_resource type="Script" uid="uid://c7y8pwsyi3q13" path="res://Scripts/HealthSystem/Health.cs" id="5_fkybt"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cvnsp"]
+size = Vector2(128, 128)
+
+[node name="player" type="RigidBody2D"]
+script = ExtResource("1_x3wgy")
+healthManagerLocation = NodePath("Scripts/HealthManager")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_cvnsp")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_v0iea")
+
+[node name="Scripts" type="Node" parent="."]
+
+[node name="MovementManager" type="Node" parent="Scripts"]
+
+[node name="MovableObject" type="Node" parent="Scripts/MovementManager" node_paths=PackedStringArray("rb")]
+script = ExtResource("2_6t5aa")
+rb = NodePath("../../..")
+
+[node name="PlayerMovement" type="Node" parent="Scripts/MovementManager" node_paths=PackedStringArray("movableObject")]
+script = ExtResource("3_vgqql")
+movableObject = NodePath("../MovableObject")
+
+[node name="HealthManager" type="Node" parent="Scripts"]
+script = ExtResource("4_vgqql")
+
+[node name="Health" type="Node" parent="Scripts/HealthManager"]
+script = ExtResource("5_fkybt")
