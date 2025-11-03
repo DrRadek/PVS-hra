@@ -4,129 +4,129 @@ using System.Collections.Generic;
 
 public partial class GameManager : Node
 {
-	[Export] public PackedScene PlayerScene;
-	[Export] public PackedScene EnemyScene;
-	[Export] public float EnemyInterval = 1.5f;
-	[Export] public int   EnemyMaxAlive = 10;
-	[Export] public float EnemySpawnMinDistance = 500f; 
-	[Export] public float EnemySpawnMaxDistance = 1000f; 
-	[Export] public bool UseChildSpawnPoints = false;
+    [Export] public PackedScene PlayerScene;
+    [Export] public PackedScene EnemyScene;
+    [Export] public float EnemyInterval = 1.5f;
+    [Export] public int   EnemyMaxAlive = 10;
+    [Export] public float EnemySpawnMinDistance = 500f; 
+    [Export] public float EnemySpawnMaxDistance = 1000f; 
+    [Export] public bool UseChildSpawnPoints = false;
 
-	private Node2D _player;                 
-	private readonly List<Node> _alive = new(); 
+    private Node2D _player;                 
+    private readonly List<Node> _alive = new(); 
 
-	public override void _Ready()
-	{
-		_player = FindExistingPlayer() ?? SpawnPlayer();
-		SpawnLoop();
-	}
+    public override void _Ready()
+    {
+        _player = FindExistingPlayer() ?? SpawnPlayer();
+        SpawnLoop();
+    }
 
-	// ——— SPAWN PLAYER —————————————————————————————————————————————
-	private Node2D SpawnPlayer()
-	{
-		if (PlayerScene == null)
-		{
-			GD.PushError("[GameManager] PlayerScene není nastavená.");
-			return null;
-		}
-		var p = PlayerScene.Instantiate<Node2D>();
-		GetTree().CurrentScene.AddChild(p);
-		p.GlobalPosition = Vector2.Zero;
-		if (!p.IsInGroup("player")) p.AddToGroup("player");
-		return p;
-	}
+    // ——— SPAWN PLAYER —————————————————————————————————————————————
+    private Node2D SpawnPlayer()
+    {
+        if (PlayerScene == null)
+        {
+            GD.PushError("[GameManager] PlayerScene není nastavená.");
+            return null;
+        }
+        var p = PlayerScene.Instantiate<Node2D>();
+        GetTree().CurrentScene.AddChild(p);
+        p.GlobalPosition = Vector2.Zero;
+        if (!p.IsInGroup("player")) p.AddToGroup("player");
+        return p;
+    }
 
-	private Node2D FindExistingPlayer()
-	{
-		return GetTree().GetFirstNodeInGroup("player") as Node2D
-			?? GetTree().Root.FindChild("player", true, false) as Node2D
-			?? GetTree().Root.FindChild("Player", true, false) as Node2D;
-	}
+    private Node2D FindExistingPlayer()
+    {
+        return GetTree().GetFirstNodeInGroup("player") as Node2D
+            ?? GetTree().Root.FindChild("player", true, false) as Node2D
+            ?? GetTree().Root.FindChild("Player", true, false) as Node2D;
+    }
 
-	// ——— SPAWN ENEMIES ———————————————————————————————————————————
-	private async void SpawnLoop()
-	{
-		while (true)
-		{
-			_alive.RemoveAll(n => !IsInstanceValid(n));
+    // ——— SPAWN ENEMIES ———————————————————————————————————————————
+    private async void SpawnLoop()
+    {
+        while (true)
+        {
+            _alive.RemoveAll(n => !IsInstanceValid(n));
 
-			if (_player != null && EnemyScene != null && _alive.Count < EnemyMaxAlive)
-			{
-				var enemy = EnemyScene.Instantiate<Node2D>();
-				enemy.GlobalPosition = GetEnemySpawnPosition();
-				var follower = FindChildRecursive<TargetFollower>(enemy);
-				if (follower != null) follower.SetTarget(_player);
+            if (_player != null && EnemyScene != null && _alive.Count < EnemyMaxAlive)
+            {
+                var enemy = EnemyScene.Instantiate<Node2D>();
+                enemy.GlobalPosition = GetEnemySpawnPosition();
+                var follower = FindChildRecursive<TargetFollower>(enemy);
+                if (follower != null) follower.SetTarget(_player);
 
-				var movable = FindChildRecursive<MovableObject>(enemy);
-				if (follower != null && follower.movableObject == null) follower.movableObject = movable;
+                var movable = FindChildRecursive<MovableObject>(enemy);
+                if (follower != null && follower.movableObject == null) follower.movableObject = movable;
 
-				GetTree().CurrentScene.AddChild(enemy);
-				_alive.Add(enemy);
-				enemy.TreeExited += () => _alive.Remove(enemy);
-			}
+                GetTree().CurrentScene.AddChild(enemy);
+                _alive.Add(enemy);
+                enemy.TreeExited += () => _alive.Remove(enemy);
+            }
 
-			await ToSignal(GetTree().CreateTimer(EnemyInterval), "timeout");
-		}
-	}
-	
-	private T FindChildBfs<T>(Node root) where T : Node
-	{
-		var q = new Queue<Node>();
-		q.Enqueue(root);
-		while (q.Count > 0)
-		{
-			var n = q.Dequeue();
-			if (n is T hit) return hit;
-			foreach (var c in n.GetChildren())
-				if (c is Node child) q.Enqueue(child);
-		}
-		return null;
-	}
-
-
-	private Vector2 GetEnemySpawnPosition()
-	{
-		if (_player == null) return Vector2.Zero;
-
-		for (int i = 0; i < 16; i++)
-		{
-			float a = GD.Randf() * Mathf.Tau;
-			float d = Mathf.Lerp(EnemySpawnMinDistance, EnemySpawnMaxDistance, GD.Randf());
-			var pos = _player.GlobalPosition + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * d;
-
-			if ((pos - _player.GlobalPosition).LengthSquared() < EnemySpawnMinDistance * EnemySpawnMinDistance)
-				continue;
-			return pos;
-		}
-		
-		{
-			float a = GD.Randf() * Mathf.Tau;
-			return _player.GlobalPosition + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * EnemySpawnMinDistance;
-		}
-	}
+            await ToSignal(GetTree().CreateTimer(EnemyInterval), "timeout");
+        }
+    }
+    
+    private T FindChildBfs<T>(Node root) where T : Node
+    {
+        var q = new Queue<Node>();
+        q.Enqueue(root);
+        while (q.Count > 0)
+        {
+            var n = q.Dequeue();
+            if (n is T hit) return hit;
+            foreach (var c in n.GetChildren())
+                if (c is Node child) q.Enqueue(child);
+        }
+        return null;
+    }
 
 
-	private void WireEnemy(Node enemyRoot, Node2D player)
-	{
-		var follower = FindChildRecursive<TargetFollower>(enemyRoot);
-		var movable  = FindChildRecursive<MovableObject>(enemyRoot);
+    private Vector2 GetEnemySpawnPosition()
+    {
+        if (_player == null) return Vector2.Zero;
 
-		if (follower != null)
-		{
-			if (follower.target == null) follower.target = player;
-			if (follower.movableObject == null) follower.movableObject = movable;
-		}
-	}
+        for (int i = 0; i < 16; i++)
+        {
+            float a = GD.Randf() * Mathf.Tau;
+            float d = Mathf.Lerp(EnemySpawnMinDistance, EnemySpawnMaxDistance, GD.Randf());
+            var pos = _player.GlobalPosition + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * d;
 
-	private T FindChildRecursive<T>(Node root) where T : class
-	{
-		if (root is T t) return t;
-		foreach (var c in root.GetChildren())
-		{
-			var n = c as Node;
-			var f = FindChildRecursive<T>(n);
-			if (f != null) return f;
-		}
-		return null;
-	}
+            if ((pos - _player.GlobalPosition).LengthSquared() < EnemySpawnMinDistance * EnemySpawnMinDistance)
+                continue;
+            return pos;
+        }
+        
+        {
+            float a = GD.Randf() * Mathf.Tau;
+            return _player.GlobalPosition + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * EnemySpawnMinDistance;
+        }
+    }
+
+
+    private void WireEnemy(Node enemyRoot, Node2D player)
+    {
+        var follower = FindChildRecursive<TargetFollower>(enemyRoot);
+        var movable  = FindChildRecursive<MovableObject>(enemyRoot);
+
+        if (follower != null)
+        {
+            if (follower.target == null) follower.target = player;
+            if (follower.movableObject == null) follower.movableObject = movable;
+        }
+    }
+
+    private T FindChildRecursive<T>(Node root) where T : class
+    {
+        if (root is T t) return t;
+        foreach (var c in root.GetChildren())
+        {
+            var n = c as Node;
+            var f = FindChildRecursive<T>(n);
+            if (f != null) return f;
+        }
+        return null;
+    }
 }

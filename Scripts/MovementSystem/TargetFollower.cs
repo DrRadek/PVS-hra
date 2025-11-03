@@ -3,27 +3,27 @@ using System;
 
 public partial class TargetFollower : AbstractMovement
 {
-	[Export] public MovableObject movableObject; 
-	[Export] public Node2D target;           
-	[Export] public float stopDistance = 0f;
+    [Export] public MovableObject movableObject; 
+    [Export] public Node2D target;           
+    [Export] public float stopDistance = 0f;
 
-	public void SetTarget(Node2D t) => target = t;
+    public void SetTarget(Node2D t) => target = t;
 
-	public override void _PhysicsProcess(double delta)
-	{
-		if (!enabled || movableObject == null || target == null) return;
+    public override void _PhysicsProcess(double delta)
+    {
+        if (!enabled || movableObject == null || target == null) return;
 
-		var myBody = movableObject.GetBodyNode2D();
-		if (myBody == null) return;
+        var myBody = movableObject.GetBodyNode2D();
+        if (myBody == null) return;
 
-		Vector2 toTarget = target.GlobalPosition - myBody.GlobalPosition;
+        Vector2 toTarget = target.GlobalPosition - myBody.GlobalPosition;
 
-		if (toTarget.LengthSquared() <= stopDistance * stopDistance)
-		{
-			movableObject.Move(Vector2.Zero);
-			return;
-		}
+        if (toTarget.LengthSquared() <= stopDistance * stopDistance)
+        {
+            movableObject.Move(Vector2.Zero);
+            return;
+        }
 
-		movableObject.Move(toTarget.Normalized());
-	}
+        movableObject.Move(toTarget.Normalized());
+    }
 }
