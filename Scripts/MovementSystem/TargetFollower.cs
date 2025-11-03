@@ -3,8 +3,8 @@ using System;
 
 public partial class TargetFollower : AbstractMovement
 {
-    [Export] public MovableObject movableObject; 
-    [Export] public Node2D target;           
+    [Export] public MovableObject movableObject;
+    [Export] public Node2D target;
     [Export] public float stopDistance = 0f;
 
     public void SetTarget(Node2D t) => target = t;
@@ -13,10 +13,10 @@ public partial class TargetFollower : AbstractMovement
     {
         if (!enabled || movableObject == null || target == null) return;
 
-        var myBody = movableObject.GetBodyNode2D();
-        if (myBody == null) return;
+        var rb = movableObject.GetRigidBody2D();
+        if (rb == null) return;
 
-        Vector2 toTarget = target.GlobalPosition - myBody.GlobalPosition;
+        Vector2 toTarget = target.GlobalPosition - rb.GlobalPosition;
 
         if (toTarget.LengthSquared() <= stopDistance * stopDistance)
         {

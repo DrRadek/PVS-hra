@@ -11,7 +11,7 @@ public partial class Enemy : RigidBody2D
     {
         BodyEntered += OnBodyEntered;
     }
-
+    
     void OnBodyEntered(Node body)
     {
         if (body is IHittable)
@@ -19,5 +19,4 @@ public partial class Enemy : RigidBody2D
             // TODO: hit hittable if it's the target
         }
     }
-    
 }
