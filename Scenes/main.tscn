@@ -1,14 +1,16 @@
-[gd_scene load_steps=3 format=3 uid="uid://d36cl7b134rp5"]
+[gd_scene load_steps=4 format=3 uid="uid://d36cl7b134rp5"]
 
+[ext_resource type="Script" uid="uid://bhk13a7rhkb1v" path="res://Scripts/Entities/SpawnEnemy.cs" id="1_8gbba"]
 [ext_resource type="PackedScene" uid="uid://d1mseb2rcga46" path="res://Scenes/player.tscn" id="1_r150o"]
 [ext_resource type="PackedScene" uid="uid://b8vp0fwf6vtkx" path="res://Scenes/enemy.tscn" id="2_idj7w"]
 
 [node name="Main" type="Node2D"]
+script = ExtResource("1_8gbba")
 
-[node name="player" parent="." instance=ExtResource("1_r150o")]
-
-[node name="Camera2D" type="Camera2D" parent="player"]
+[node name="player" parent="." groups=["player"] instance=ExtResource("1_r150o")]
 
 [node name="enemy" parent="." node_paths=PackedStringArray("target") instance=ExtResource("2_idj7w")]
 position = Vector2(417, -3)
 target = NodePath("../player")
+
+[node name="Camera2D" type="Camera2D" parent="."]

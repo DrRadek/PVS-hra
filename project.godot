@@ -19,6 +19,10 @@ config/icon="res://icon.svg"
 
 project/assembly_name="PVS-hra"
 
+[global_group]
+
+player=""
+
 [input]
 
 MoveUp={
