@@ -57,10 +57,11 @@ public partial class GameManager : Node
                 var enemy = EnemyScene.Instantiate<Node2D>();
                 enemy.GlobalPosition = GetEnemySpawnPosition();
                 var follower = FindChildRecursive<TargetFollower>(enemy);
-                if (follower != null) follower.SetTarget(_player);
-
-                var movable = FindChildRecursive<MovableObject>(enemy);
-                if (follower != null && follower.movableObject == null) follower.movableObject = movable;
+                if (follower != null) {
+                    follower.SetTarget(_player);
+                    var movable = FindChildRecursive<MovableObject>(enemy);
+                    if (movable != null) follower.SetMovable(movable);
+                }
 
                 GetTree().CurrentScene.AddChild(enemy);
                 _alive.Add(enemy);
@@ -78,19 +79,6 @@ public partial class GameManager : Node
         float a = GD.Randf() * Mathf.Tau;
         float d = Mathf.Lerp(EnemySpawnMinDistance, EnemySpawnMaxDistance, GD.Randf());
         return _player.GlobalPosition + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * d;
-    }
-
-
-    private void WireEnemy(Node enemyRoot, Node2D player)
-    {
-        var follower = FindChildRecursive<TargetFollower>(enemyRoot);
-        var movable  = FindChildRecursive<MovableObject>(enemyRoot);
-
-        if (follower != null)
-        {
-            if (follower.target == null) follower.target = player;
-            if (follower.movableObject == null) follower.movableObject = movable;
-        }
     }
 
     private T FindChildRecursive<T>(Node root) where T : class
