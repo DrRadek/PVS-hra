@@ -26,10 +26,12 @@ texture = ExtResource("1_afpow")
 
 [node name="MovableObject" type="Node" parent="Scripts/MovementSystem" node_paths=PackedStringArray("rb")]
 script = ExtResource("2_287tu")
+speed = 20.0
 rb = NodePath("../../..")
 
-[node name="TargetFollower" type="Node" parent="Scripts/MovementSystem"]
+[node name="TargetFollower" type="Node" parent="Scripts/MovementSystem" node_paths=PackedStringArray("movableObject")]
 script = ExtResource("3_afpow")
+movableObject = NodePath("../MovableObject")
 
 [node name="HealthManager" type="Node" parent="Scripts"]
 script = ExtResource("4_0830c")
