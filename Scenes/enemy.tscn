@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3 uid="uid://b8vp0fwf6vtkx"]
 
-[ext_resource type="Texture2D" uid="uid://t0pmlrblrces" path="res://icon.svg" id="1_afpow"]
+[ext_resource type="Texture2D" uid="uid://7xn7dvo628j1" path="res://icon.svg" id="1_afpow"]
 [ext_resource type="Script" uid="uid://bsep7jruol4tf" path="res://Scripts/Entities/Enemy.cs" id="1_ghaa6"]
 [ext_resource type="Script" uid="uid://dtli7c7ukojbp" path="res://Scripts/MovementSystem/MovableObject.cs" id="2_287tu"]
 [ext_resource type="Script" uid="uid://da6sqibwe3cw4" path="res://Scripts/MovementSystem/TargetFollower.cs" id="3_afpow"]
@@ -26,10 +26,12 @@ texture = ExtResource("1_afpow")
 
 [node name="MovableObject" type="Node" parent="Scripts/MovementSystem" node_paths=PackedStringArray("rb")]
 script = ExtResource("2_287tu")
+speed = 60.0
 rb = NodePath("../../..")
 
-[node name="TargetFollower" type="Node" parent="Scripts/MovementSystem"]
+[node name="TargetFollower" type="Node" parent="Scripts/MovementSystem" node_paths=PackedStringArray("movableObject")]
 script = ExtResource("3_afpow")
+movableObject = NodePath("../MovableObject")
 
 [node name="HealthManager" type="Node" parent="Scripts"]
 script = ExtResource("4_0830c")
