@@ -5,16 +5,10 @@ public partial class TargetFollower : AbstractMovement
 {
 	[Export] public MovableObject movableObject; 
 	[Export] public Node2D target;               
-	[Export] public float stopDistance = 4f;
+	[Export] public float stopDistance = 0;
 
 	public override void _Ready()
 	{
-		SetPhysicsProcess(true);
-
-		if (movableObject == null)
-			movableObject = GetNodeOrNull<MovableObject>("../MovableObject")
-						 ?? GetNodeOrNull<MovableObject>("MovableObject");
-
 		if (target == null)
 			target = GetTree().GetFirstNodeInGroup("player") as Node2D
 				  ?? GetTree().Root.FindChild("player", true, false) as Node2D
