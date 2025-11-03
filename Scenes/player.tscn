@@ -28,7 +28,7 @@ texture = ExtResource("1_v0iea")
 script = ExtResource("2_6t5aa")
 rb = NodePath("../../..")
 
-[node name="PlayerMovement" type="Node" parent="Scripts/MovementManager" node_paths=PackedStringArray("movableObject") groups=["player"]]
+[node name="PlayerMovement" type="Node" parent="Scripts/MovementManager" node_paths=PackedStringArray("movableObject")]
 script = ExtResource("3_vgqql")
 movableObject = NodePath("../MovableObject")
 
