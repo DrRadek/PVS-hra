@@ -4,18 +4,10 @@ using System;
 public partial class TargetFollower : AbstractMovement
 {
 	[Export] public MovableObject movableObject; 
-	[Export] public Node2D target;               
-	[Export] public float stopDistance = 0;
+	[Export] public Node2D target;           
+	[Export] public float stopDistance = 0f;
 
-	public override void _Ready()
-	{
-		if (target == null)
-			target = GetTree().GetFirstNodeInGroup("player") as Node2D
-				  ?? GetTree().Root.FindChild("player", true, false) as Node2D
-				  ?? GetTree().Root.FindChild("Player", true, false) as Node2D;
-
-		GD.Print($"[TargetFollower] ready | mo={(movableObject!=null)} | target={(target!=null)}");
-	}
+	public void SetTarget(Node2D t) => target = t;
 
 	public override void _PhysicsProcess(double delta)
 	{
