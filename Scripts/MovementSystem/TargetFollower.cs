@@ -3,21 +3,27 @@ using System;
 
 public partial class TargetFollower : AbstractMovement
 {
-    [Export] MovableObject movableObject;
-    [Export] Node2D target;
+    [Export] public MovableObject movableObject;
+    [Export] public Node2D target;
+    [Export] public float stopDistance = 0f;
+
+    public void SetTarget(Node2D t) => target = t;
 
     public override void _PhysicsProcess(double delta)
     {
-        base._PhysicsProcess(delta);
+        if (!enabled || movableObject == null || target == null) return;
 
-        if (enabled)
+        var rb = movableObject.GetRigidBody2D();
+        if (rb == null) return;
+
+        Vector2 toTarget = target.GlobalPosition - rb.GlobalPosition;
+
+        if (toTarget.LengthSquared() <= stopDistance * stopDistance)
         {
-            // TODO: implement logic to move the object towards the target (call Move from the MovableObject)
+            movableObject.Move(Vector2.Zero);
+            return;
         }
-    }
 
-    public void SetTarget(Node2D target)
-    {
-        this.target = target;
+        movableObject.Move(toTarget.Normalized());
     }
 }
