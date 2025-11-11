@@ -1,0 +1,24 @@
+Do příště (za 2 týdny - 25.11):
+
+Kód:
+- zamknout rotace hráčů (případně ve směru hráče)
+	- locknout rotace na 8 směrů
+- implementovat životy, střely (funkce)
+- implementovat umírání, konec hry
+- implementovat ukazatel životů
+
+Grafika:
+- pixelart
+- top-down
+- styl vesmíru
+	- co bude hráč
+	- co budou nepřátelé
+	- co budou střely (body pohybující se po trajektorii) - particles
+	- pozadí (tiles)
+- renderování životů
+	- ukážou se po hitnutí (vykreslovat enginem) - nějakej font
+	- bude tam bar
+
+Funkce
+- necháme rakety
+
