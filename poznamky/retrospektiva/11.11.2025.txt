@@ -1,0 +1,33 @@
+Radek
+pozitiva
+- funguje pohyb
+- funguje spawnování
+- fungují kolize
+
+negativa
+- rychlost práce
+
+
+André
+pozitiva
+- líbí se mi jak jsi nasetupoval projekt
+- líbí se mi, že jsi mi vysvětlil princip diskuze
+
+negativa
+- rychlost práce
+
+
+Richard
+pozitiva
+- progress vypadá ok
+- pohyb ok
+
+negativa
+- rychlost práce
+
+
+Dohromady
+- pohyb je ok
+
+negativa
+- rychlost práce
