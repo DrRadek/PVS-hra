@@ -14,7 +14,7 @@ public partial class Health : AbstractHealth
         // absolute = true => deal exactly the amount
         // absolute = false => deal damage in percentage
         float damageAmount = isAbsolute ? amount : maxHealth * amount;
-        health -= isAbsolute ? amount : maxHealth * amount;
+        health -= damageAmount;
 
         if (!IsInstanceValid(lastPopup))
         {
@@ -33,6 +33,5 @@ public partial class Health : AbstractHealth
         // absolute = true => heal exactly the amount
         // absolute = false => heal percentage
         health += isAbsolute ? amount : maxHealth * amount;
-        return;
     }
 }
