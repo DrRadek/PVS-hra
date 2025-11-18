@@ -33,6 +33,5 @@ public partial class Health : AbstractHealth
         // absolute = true => heal exactly the amount
         // absolute = false => heal percentage
         health += isAbsolute ? amount : maxHealth * amount;
-        return;
     }
 }
