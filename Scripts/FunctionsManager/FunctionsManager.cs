@@ -112,7 +112,7 @@ public partial class FunctionsManager : Node
     {
         public SinTrajectoryFunction()
         {
-            functionDefinition = (x) => Mathf.Sin(x);//Mathf.Sin(x);
+            functionDefinition = (x) => Mathf.Sin(x);
         }
     }
 

@@ -2,7 +2,7 @@ using Godot;
 
 public class MouseRotator
 {
-    Node2D flipTarget;
+    private Node2D flipTarget;
 
     public MouseRotator(Node2D flipTarget)
     {

@@ -50,7 +50,6 @@ public partial class Projectile : Area2D
             GetParent().QueueFree();
         }
 
-        float lastX = distance;
         distance += (float)delta * speed;
         float y = trajectoryFunction(distance * reverseMultiplier * 0.01f);
         Position = new Vector2(distance * reverseMultiplier, -y * 100);
