@@ -5,8 +5,8 @@ public partial class HealthPopup : Control
 {
     [Export] Label label;
 
-    double popupTime = 0.0f;
-    double popupLifetime = 1.2f;
+    double popupTime = 0.0;
+    double popupLifetime = 1.2;
     float popupSpeed = 20.0f;
 
     public override void _Ready()
