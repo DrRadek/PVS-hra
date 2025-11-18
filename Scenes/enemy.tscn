@@ -11,6 +11,7 @@
 size = Vector2(128, 128)
 
 [node name="enemy" type="RigidBody2D" node_paths=PackedStringArray("targetFollower")]
+lock_rotation = true
 contact_monitor = true
 max_contacts_reported = 1
 script = ExtResource("1_ghaa6")
