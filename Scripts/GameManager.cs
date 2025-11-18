@@ -17,16 +17,16 @@ public partial class GameManager : Node2D
     private Node2D _player;                 
     private readonly List<Node> _alive = new();
 
-	public Node2D storageNode;
+    public Node2D storageNode;
 
     public override void _Ready()
     {
-		if (Instance == null)
-			Instance = this;
+        if (Instance == null)
+            Instance = this;
 
-		storageNode = this;
+        storageNode = this;
 
-		_player = FindExistingPlayer() ?? SpawnPlayer();
+        _player = FindExistingPlayer() ?? SpawnPlayer();
         SpawnLoop();
     }
 
@@ -39,9 +39,9 @@ public partial class GameManager : Node2D
             return null;
         }
         var p = PlayerScene.Instantiate<Node2D>();
-		(p as Player).storageNode = this;
+        (p as Player).storageNode = this;
 
-		GetTree().CurrentScene.AddChild(p);
+        GetTree().CurrentScene.AddChild(p);
         p.GlobalPosition = Vector2.Zero;
         if (!p.IsInGroup("player")) p.AddToGroup("player");
         return p;
