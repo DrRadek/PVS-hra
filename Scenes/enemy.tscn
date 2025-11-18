@@ -11,7 +11,11 @@
 size = Vector2(128, 128)
 
 [node name="enemy" type="RigidBody2D" node_paths=PackedStringArray("targetFollower")]
+lock_rotation = true
+contact_monitor = true
+max_contacts_reported = 1
 script = ExtResource("1_ghaa6")
+healthManagerLocation = NodePath("Scripts/HealthManager")
 targetFollower = NodePath("Scripts/MovementSystem/TargetFollower")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -33,8 +37,12 @@ rb = NodePath("../../..")
 script = ExtResource("3_afpow")
 movableObject = NodePath("../MovableObject")
 
-[node name="HealthManager" type="Node" parent="Scripts"]
+[node name="HealthManager" type="Node" parent="Scripts" node_paths=PackedStringArray("health")]
 script = ExtResource("4_0830c")
+health = NodePath("Health")
 
-[node name="Health" type="Node" parent="Scripts/HealthManager"]
+[node name="Health" type="Node" parent="Scripts/HealthManager" node_paths=PackedStringArray("parentPosition")]
 script = ExtResource("5_ghaa6")
+maxHealth = 20.0
+health = 20.0
+parentPosition = NodePath("../../..")

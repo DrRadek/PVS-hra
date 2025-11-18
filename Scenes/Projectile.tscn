@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3 uid="uid://cj8u0e7xp1hge"]
+
+[ext_resource type="Script" uid="uid://ckqmat08mjss2" path="res://Scripts/Entities/Projectile.cs" id="1_k1cl8"]
+[ext_resource type="Texture2D" uid="uid://7xn7dvo628j1" path="res://icon.svg" id="1_lal66"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_k1cl8"]
+
+[sub_resource type="Gradient" id="Gradient_k1cl8"]
+offsets = PackedFloat32Array(0, 0.99122804)
+colors = PackedColorArray(1, 0, 0.0843935, 1, 1, 0.9961937, 0, 0)
+
+[node name="Projectile" type="Area2D"]
+monitorable = false
+script = ExtResource("1_k1cl8")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_k1cl8")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.125, 0.125)
+texture = ExtResource("1_lal66")
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="."]
+texture = ExtResource("1_lal66")
+gravity = Vector2(0, 0)
+scale_amount_min = 0.05
+scale_amount_max = 0.05
+color_ramp = SubResource("Gradient_k1cl8")
