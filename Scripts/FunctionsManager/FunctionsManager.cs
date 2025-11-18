@@ -47,11 +47,9 @@ public partial class FunctionsManager : Node
         EnableAll();
     }
 
-
     public override void _Process(double delta)
     {
         var rotation = mouseRotator.calculateRotation();
-        GD.Print(rotation);
 
         if (Math.Abs(rotation) <= Mathf.Abs(Mathf.Pi/2))
         {
@@ -60,23 +58,15 @@ public partial class FunctionsManager : Node
         else
         {
             rotationNode.Scale = new Vector2(-1 * Mathf.Abs(rotationNode.Scale.X), rotationNode.Scale.Y);
-            GD.Print("FLIP");
         }
 
         if (!attacksEnabled)
             return;
 
-
-
         float dt = (float)delta;
         foreach (var atk in usedAttacks)
             atk.Update(rotation, dt);
     }
-
-
-    // =============================
-    // ENABLE / DISABLE
-    // =============================
 
     public void EnableAll()
     {
@@ -96,50 +86,6 @@ public partial class FunctionsManager : Node
             atk.Disable();
     }
 
-
-
-    // ==============================================================
-    // PROJECTILE
-    // ==============================================================
-
-    //public partial class Projectile : Node2D
-    //{
-    //    public delegate float FunctionEventHandler(float x);
-
-    //    private FunctionEventHandler dmgFn;
-    //    private FunctionEventHandler trajFn;
-    //    private float speed;
-    //    private float time = 0f;
-
-    //    public void Init(FunctionEventHandler dmg,
-    //                     FunctionEventHandler traj,
-    //                     float speed,
-    //                     float initialRotation)
-    //    {
-    //        this.dmgFn = dmg;
-    //        this.trajFn = traj;
-    //        this.speed = speed;
-    //        Rotation = initialRotation;
-    //    }
-
-    //    public override void _Process(double delta)
-    //    {
-    //        float dt = (float)delta;
-    //        time += dt;
-
-    //        float offset = trajFn != null ? trajFn(time) : 0f;
-    //        float ang = Rotation + offset;
-
-    //        Position += new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * speed * dt;
-    //    }
-    //}
-
-
-
-    // ==============================================================
-    // UPGRADEABLE FUNCTIONS
-    // ==============================================================
-
     public class UpgradableFunction
     {
         protected int upgradeLevel = 1;
@@ -154,16 +100,13 @@ public partial class FunctionsManager : Node
         public Projectile.FunctionEventHandler FunctionDefinition => functionDefinition;
     }
 
-
     public class DamageFunction : UpgradableFunction { }
-
 
     public class TrajectoryFunction : UpgradableFunction
     {
         public float BaseSpeed = 200f;
         public float GetSpeed(int attackUpgrade) => BaseSpeed + attackUpgrade * 20f;
     }
-
 
     public class SinTrajectoryFunction : TrajectoryFunction
     {
@@ -180,12 +123,6 @@ public partial class FunctionsManager : Node
             functionDefinition = (x) => Mathf.Abs(Mathf.Sin(x)) * upgradeLevel + upgradeLevel;
         }
     }
-
-
-
-    // ==============================================================
-    // ATTACK (final)
-    // ==============================================================
 
     public class Attack
     {
@@ -209,7 +146,6 @@ public partial class FunctionsManager : Node
         private int shotsRemaining = 0;
         private bool enabled = false;
 
-
         public Attack(PackedScene scene,
                       TrajectoryFunction traj,
                       DamageFunction dmg,
@@ -221,11 +157,6 @@ public partial class FunctionsManager : Node
             damageFn = dmg;
             this.rotationNode = rotationNode;
         }
-
-
-        // =============================
-        // LIFECYCLE
-        // =============================
 
         public void Enable()
         {
@@ -244,11 +175,6 @@ public partial class FunctionsManager : Node
             shotTimer = 0f;
             shotsRemaining = 0;
         }
-
-
-        // =============================
-        // UPDATE LOGIC
-        // =============================
 
         public void Update(float angle, float delta)
         {
@@ -281,11 +207,6 @@ public partial class FunctionsManager : Node
             }
         }
 
-
-        // =============================
-        // FIRE
-        // =============================
-
         private void FireProjectile(float angle, bool reverse = false)
         {
             var inst = projectileScene.Instantiate<Projectile>();
@@ -299,7 +220,6 @@ public partial class FunctionsManager : Node
             );
 
             var helperNode = new Node2D();
-            GD.Print(GameManager.Instance);
             GameManager.Instance.storageNode.AddChild(helperNode);
             helperNode.GlobalPosition = rotationNode.GlobalPosition;
             helperNode.GlobalRotation = angle;

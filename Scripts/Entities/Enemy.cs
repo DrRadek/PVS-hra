@@ -32,8 +32,6 @@ public partial class Enemy : RigidBody2D, IHittable
 
     void OnDeath()
     {
-        // TODO: implement
-        GD.Print("Enemy died");
         QueueFree();
     }
 }
