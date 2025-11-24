@@ -3,26 +3,55 @@ using System;
 
 public partial class Projectile : Area2D
 {
-    public delegate int FunctionEventHandler(int x);
-    FunctionEventHandler functionEvent;
-    // TODO:
-    //  projectile should follow a path of the given function
-    //  it should react to IHittable and hit it with the calculated damage
-    //  function can be invoked like this: int y = functionEvent.Invoke(x);
-    // Idea:
-    //  a new class ProjectiveShooter will for example shoot x projectiles every y seconds
-    //  All projectiles will follow the trajectory defined by the function and increment their x every move (based on given speed)
+    public delegate float FunctionEventHandler(float x);
+    FunctionEventHandler damageFunction;
+    FunctionEventHandler trajectoryFunction;
 
-    public void SetFunction(FunctionEventHandler function)
+    float maxTimeAlive = 10;
+    float time = 0;
+    float distance = 0;
+    float lastY = 0;
+
+    float speed;
+    int reverseMultiplier;
+
+    public override void _Ready()
     {
-        this.functionEvent = function;
+        BodyEntered += Projectile_BodyEntered;
+    }
+
+    private void Projectile_BodyEntered(Node2D body)
+    {
+        if (body is IHittable hittable && body is Enemy)
+        {
+            hittable.GetHit(damageFunction(distance * reverseMultiplier * 0.01f), true);
+            GetParent().QueueFree();
+        }
+    }
+
+    public void Init(FunctionEventHandler damageFunction,
+                         FunctionEventHandler trajectoryFunction,
+                         float speed, bool reverse)
+    {
+        this.damageFunction = damageFunction;
+        this.trajectoryFunction = trajectoryFunction;
+        this.speed = speed;
+        this.reverseMultiplier = reverse ? -1 : 1;
+
+        this.lastY = trajectoryFunction(distance);
     }
 
     public override void _PhysicsProcess(double delta)
     {
-        // Move the projectile here
-        // Use this.Position to set position
-        // Multiply by delta to make a framerate independent change of position (for example var changeX = speed * delta;)
-        //  ChangeX then can be used to change the position
+        float dt = (float)delta;
+        time += dt;
+
+        if (time > maxTimeAlive) {
+            GetParent().QueueFree();
+        }
+
+        distance += (float)delta * speed;
+        float y = trajectoryFunction(distance * reverseMultiplier * 0.01f);
+        Position = new Vector2(distance * reverseMultiplier, -y * 100);
     }
 }

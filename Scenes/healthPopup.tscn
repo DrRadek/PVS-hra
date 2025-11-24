@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3 uid="uid://ch50n7y60fgys"]
+
+[ext_resource type="Script" uid="uid://cobvxff6bq7r6" path="res://Scripts/HealthSystem/HealthPopup.cs" id="1_282r3"]
+
+[sub_resource type="SystemFont" id="SystemFont_mgo7y"]
+font_names = PackedStringArray("Comic Sans MS")
+multichannel_signed_distance_field = true
+
+[sub_resource type="LabelSettings" id="LabelSettings_282r3"]
+font = SubResource("SystemFont_mgo7y")
+
+[node name="HealthPopup" type="Control" node_paths=PackedStringArray("label")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_282r3")
+label = NodePath("Label")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "-5.4 (5.4/100)"
+label_settings = SubResource("LabelSettings_282r3")

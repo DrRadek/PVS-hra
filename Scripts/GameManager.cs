@@ -2,7 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
-public partial class GameManager : Node
+public partial class GameManager : Node2D
 {
     // Singleton
     public static GameManager Instance { get; private set; }
@@ -15,10 +15,17 @@ public partial class GameManager : Node
     [Export] public float EnemySpawnMaxDistance = 1000f; 
 
     private Node2D _player;                 
-    private readonly List<Node> _alive = new(); 
+    private readonly List<Node> _alive = new();
+
+    public Node2D storageNode;
 
     public override void _Ready()
     {
+        if (Instance == null)
+            Instance = this;
+
+        storageNode = this;
+
         _player = FindExistingPlayer() ?? SpawnPlayer();
         SpawnLoop();
     }
@@ -32,6 +39,8 @@ public partial class GameManager : Node
             return null;
         }
         var p = PlayerScene.Instantiate<Node2D>();
+        (p as Player).storageNode = this;
+
         GetTree().CurrentScene.AddChild(p);
         p.GlobalPosition = Vector2.Zero;
         if (!p.IsInGroup("player")) p.AddToGroup("player");

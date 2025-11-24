@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="PVS-hra"
-run/main_scene="uid://d36cl7b134rp5"
+run/main_scene="uid://bg4vt12bvfg0f"
 config/features=PackedStringArray("4.5", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
