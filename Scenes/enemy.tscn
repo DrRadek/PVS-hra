@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=3 uid="uid://b8vp0fwf6vtkx"]
+[gd_scene load_steps=9 format=3 uid="uid://b8vp0fwf6vtkx"]
 
 [ext_resource type="Texture2D" uid="uid://7xn7dvo628j1" path="res://icon.svg" id="1_afpow"]
 [ext_resource type="Script" uid="uid://bsep7jruol4tf" path="res://Scripts/Entities/Enemy.cs" id="1_ghaa6"]
+[ext_resource type="PackedScene" uid="uid://c5dmt2f15l17w" path="res://Scenes/Exp.tscn" id="2_1dp5w"]
 [ext_resource type="Script" uid="uid://dtli7c7ukojbp" path="res://Scripts/MovementSystem/MovableObject.cs" id="2_287tu"]
 [ext_resource type="Script" uid="uid://da6sqibwe3cw4" path="res://Scripts/MovementSystem/TargetFollower.cs" id="3_afpow"]
 [ext_resource type="Script" uid="uid://bnay44e4hcekj" path="res://Scripts/HealthSystem/HealthManager.cs" id="4_0830c"]
@@ -17,6 +18,7 @@ max_contacts_reported = 1
 script = ExtResource("1_ghaa6")
 healthManagerLocation = NodePath("Scripts/HealthManager")
 targetFollower = NodePath("Scripts/MovementSystem/TargetFollower")
+exp = ExtResource("2_1dp5w")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_cvnsp")
@@ -43,6 +45,6 @@ health = NodePath("Health")
 
 [node name="Health" type="Node" parent="Scripts/HealthManager" node_paths=PackedStringArray("parentPosition")]
 script = ExtResource("5_ghaa6")
-maxHealth = 20.0
-health = 20.0
+maxHealth = 1.0
+health = 1.0
 parentPosition = NodePath("../../..")

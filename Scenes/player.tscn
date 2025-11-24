@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://d1mseb2rcga46"]
+[gd_scene load_steps=12 format=3 uid="uid://d1mseb2rcga46"]
 
 [ext_resource type="Texture2D" uid="uid://7xn7dvo628j1" path="res://icon.svg" id="1_v0iea"]
 [ext_resource type="Script" uid="uid://du7molj5rieqc" path="res://Scripts/Entities/Player.cs" id="1_x3wgy"]
@@ -8,9 +8,13 @@
 [ext_resource type="Script" uid="uid://c7y8pwsyi3q13" path="res://Scripts/HealthSystem/Health.cs" id="5_fkybt"]
 [ext_resource type="Script" uid="uid://o7j6kordxqpq" path="res://Scripts/FunctionsManager/FunctionsManager.cs" id="7_3smsa"]
 [ext_resource type="PackedScene" uid="uid://cj8u0e7xp1hge" path="res://Scenes/Projectile.tscn" id="8_8erm5"]
+[ext_resource type="Script" uid="uid://d0c6g1fdx6o5t" path="res://Scripts/CollectibleSystem/CollectibleCollector.cs" id="9_f1ek2"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cvnsp"]
 size = Vector2(128, 128)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_f1ek2"]
+radius = 350.0
 
 [node name="player" type="RigidBody2D"]
 lock_rotation = true
@@ -30,6 +34,11 @@ texture = ExtResource("1_v0iea")
 position = Vector2(31, 3.0000002)
 scale = Vector2(0.4296875, 0.4296875)
 texture = ExtResource("1_v0iea")
+
+[node name="CollectibleArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CollectibleArea"]
+shape = SubResource("CircleShape2D_f1ek2")
 
 [node name="Scripts" type="Node" parent="."]
 
@@ -56,5 +65,10 @@ parentPosition = NodePath("../../..")
 script = ExtResource("7_3smsa")
 projectileScenes = Array[PackedScene]([ExtResource("8_8erm5")])
 rotationNode = NodePath("../../Visual")
+
+[node name="CollectibleCollector" type="Node" parent="Scripts" node_paths=PackedStringArray("collectorOwner", "area")]
+script = ExtResource("9_f1ek2")
+collectorOwner = NodePath("../..")
+area = NodePath("../../CollectibleArea")
 
 [node name="Camera2D" type="Camera2D" parent="."]
