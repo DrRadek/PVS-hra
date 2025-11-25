@@ -5,6 +5,8 @@ public partial class Enemy : RigidBody2D, IHittable
 {
     [Export] NodePath healthManagerLocation;
     [Export] TargetFollower targetFollower;
+    [Export] PackedScene exp;
+    [Export] int expDropAmount = 10; // TODO: move somewhere else?
 
     [Export] Node2D target;
     AbstractHealthManager healthManager;
@@ -32,6 +34,11 @@ public partial class Enemy : RigidBody2D, IHittable
 
     void OnDeath()
     {
+        Exp expNode = (Exp)exp.Instantiate();
+        expNode.Init(expDropAmount);
+        expNode.Position = GlobalPosition;
+        GameManager.Instance.storageNode.CallDeferred("add_child", expNode);
+
         QueueFree();
     }
 }

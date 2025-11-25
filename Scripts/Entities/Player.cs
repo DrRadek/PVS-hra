@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public partial class Player : RigidBody2D, IHittable
+public partial class Player : RigidBody2D, IHittable, IXpReceiver
 {
     [Export] NodePath healthManagerLocation;
     [Export] NodePath functionsManagerLocation;
@@ -26,5 +26,10 @@ public partial class Player : RigidBody2D, IHittable
     {
         // TODO: implement
         GD.Print("PLAYER DIED");
+    }
+
+    public void ReceiveXp(int amount)
+    {
+        GD.Print($"Player Collected {amount} xp");
     }
 }

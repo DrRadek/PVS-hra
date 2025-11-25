@@ -1,0 +1,26 @@
+Do příště:
+
+- dokončit pohyb (lock na 8 rotací)
+- zakomponovat grafiku
+- UI (životy, xp, level, skóre, čas naživu)
+- škálování obtížnosti (jak? + 1 * (skóre/1000))
+- omezení hranic mapy
+- implementovat počítání skóre 
+- přidat možnost výběru funkcí (po level upu)
+- konec hry: despawn hráče a ukázat skóre uprostřed (uprostřed tlačítko nová hra nebo konec)
+
+- maximálně 2 typy nepřátel
+- 5 funkcí
+	- poškození: konstanta, sin, cos, exponenciála, logaritmus
+	- směr: konstanta, sin, cos, exponenciála, logaritmus
+
+- vylepšení: když bude čas navíc
+	- rychlost, životy, regenerace
+	- funkce: rychlost střelby, násobič
+
+- dáme na git do releases
+
+- nebude
+	- top skóre
+	- menu
+	- android
