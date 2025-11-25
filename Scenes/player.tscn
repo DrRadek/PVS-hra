@@ -1,8 +1,9 @@
-[gd_scene load_steps=12 format=3 uid="uid://d1mseb2rcga46"]
+[gd_scene load_steps=13 format=3 uid="uid://d1mseb2rcga46"]
 
 [ext_resource type="Texture2D" uid="uid://7xn7dvo628j1" path="res://icon.svg" id="1_v0iea"]
 [ext_resource type="Script" uid="uid://du7molj5rieqc" path="res://Scripts/Entities/Player.cs" id="1_x3wgy"]
 [ext_resource type="Script" uid="uid://dtli7c7ukojbp" path="res://Scripts/MovementSystem/MovableObject.cs" id="2_6t5aa"]
+[ext_resource type="Texture2D" uid="uid://cl1h2m88tsufa" path="res://Assets/Lod/lod1-7a.bmp" id="2_tx1dd"]
 [ext_resource type="Script" uid="uid://deps4pfts1dt7" path="res://Scripts/MovementSystem/PlayerMovement.cs" id="3_vgqql"]
 [ext_resource type="Script" uid="uid://bnay44e4hcekj" path="res://Scripts/HealthSystem/HealthManager.cs" id="4_vgqql"]
 [ext_resource type="Script" uid="uid://c7y8pwsyi3q13" path="res://Scripts/HealthSystem/Health.cs" id="5_fkybt"]
@@ -28,11 +29,12 @@ shape = SubResource("RectangleShape2D_cvnsp")
 [node name="Visual" type="Node2D" parent="."]
 
 [node name="Sprite2D" type="Sprite2D" parent="Visual"]
-texture = ExtResource("1_v0iea")
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("2_tx1dd")
 
 [node name="Sprite2D" type="Sprite2D" parent="Visual/Sprite2D"]
 position = Vector2(31, 3.0000002)
-scale = Vector2(0.4296875, 0.4296875)
+scale = Vector2(0.2, 0.2)
 texture = ExtResource("1_v0iea")
 
 [node name="CollectibleArea" type="Area2D" parent="."]
