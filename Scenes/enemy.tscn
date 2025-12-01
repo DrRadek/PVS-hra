@@ -1,12 +1,20 @@
-[gd_scene load_steps=9 format=3 uid="uid://b8vp0fwf6vtkx"]
+[gd_scene load_steps=17 format=3 uid="uid://b8vp0fwf6vtkx"]
 
-[ext_resource type="Texture2D" uid="uid://7xn7dvo628j1" path="res://icon.svg" id="1_afpow"]
 [ext_resource type="Script" uid="uid://bsep7jruol4tf" path="res://Scripts/Entities/Enemy.cs" id="1_ghaa6"]
 [ext_resource type="PackedScene" uid="uid://c5dmt2f15l17w" path="res://Scenes/Exp.tscn" id="2_1dp5w"]
 [ext_resource type="Script" uid="uid://dtli7c7ukojbp" path="res://Scripts/MovementSystem/MovableObject.cs" id="2_287tu"]
 [ext_resource type="Script" uid="uid://da6sqibwe3cw4" path="res://Scripts/MovementSystem/TargetFollower.cs" id="3_afpow"]
 [ext_resource type="Script" uid="uid://bnay44e4hcekj" path="res://Scripts/HealthSystem/HealthManager.cs" id="4_0830c"]
+[ext_resource type="Script" uid="uid://o55wxo12evjj" path="res://Scripts/MovementSystem/DirectionTextureSetter.cs" id="4_auwsv"]
 [ext_resource type="Script" uid="uid://c7y8pwsyi3q13" path="res://Scripts/HealthSystem/Health.cs" id="5_ghaa6"]
+[ext_resource type="Texture2D" uid="uid://cxsk0e6xj01xm" path="res://Assets/Enemy/lod2-7plchldr.bmp" id="5_hgeoe"]
+[ext_resource type="Texture2D" uid="uid://ckouidltsxajv" path="res://Assets/Enemy/lod2-5plchldr.bmp" id="6_tk7xo"]
+[ext_resource type="Texture2D" uid="uid://bnlpiei0xncnc" path="res://Assets/Enemy/lod2-4plchldr.bmp" id="7_scl1n"]
+[ext_resource type="Texture2D" uid="uid://7cgxllympwdj" path="res://Assets/Enemy/lod2-2.bmp" id="8_dhkrs"]
+[ext_resource type="Texture2D" uid="uid://doln4bma3r4gg" path="res://Assets/Enemy/lod2-8plchldr.bmp" id="9_5xdhn"]
+[ext_resource type="Texture2D" uid="uid://dv77yot75o0ak" path="res://Assets/Enemy/lod2.bmp" id="10_4jyny"]
+[ext_resource type="Texture2D" uid="uid://suuccpq56g3i" path="res://Assets/Enemy/lod2-3plchldr.bmp" id="11_vh8xy"]
+[ext_resource type="Texture2D" uid="uid://chyor8l7r6mm1" path="res://Assets/Enemy/lod2-6plchldr.bmp" id="12_qjcj6"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cvnsp"]
 size = Vector2(128, 128)
@@ -24,11 +32,18 @@ exp = ExtResource("2_1dp5w")
 shape = SubResource("RectangleShape2D_cvnsp")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-texture = ExtResource("1_afpow")
+scale = Vector2(2.02, 2.02)
+texture = ExtResource("5_hgeoe")
 
 [node name="Scripts" type="Node" parent="."]
 
 [node name="MovementSystem" type="Node" parent="Scripts"]
+
+[node name="DirectionTextureSetter" type="Node" parent="Scripts/MovementSystem" node_paths=PackedStringArray("spriteToSetTo", "movableObject")]
+script = ExtResource("4_auwsv")
+spriteToSetTo = NodePath("../../../Sprite2D")
+movableObject = NodePath("../MovableObject")
+textures = [ExtResource("5_hgeoe"), ExtResource("5_hgeoe"), ExtResource("6_tk7xo"), ExtResource("7_scl1n"), ExtResource("8_dhkrs"), ExtResource("9_5xdhn"), ExtResource("10_4jyny"), ExtResource("11_vh8xy"), ExtResource("12_qjcj6")]
 
 [node name="MovableObject" type="Node" parent="Scripts/MovementSystem" node_paths=PackedStringArray("rb")]
 script = ExtResource("2_287tu")
