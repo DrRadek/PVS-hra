@@ -12,12 +12,18 @@ public partial class GameManager : Node2D
     [Export] public float EnemyInterval = 1.5f;
     [Export] public int   EnemyMaxAlive = 10;
     [Export] public float EnemySpawnMinDistance = 500f; 
-    [Export] public float EnemySpawnMaxDistance = 1000f; 
+    [Export] public float EnemySpawnMaxDistance = 1000f;
+    [Export] BackgroundMover backgroundMover;
 
     private Node2D _player;                 
     private readonly List<Node> _alive = new();
 
     public Node2D storageNode;
+
+    public Node2D GetPlayer()
+    {
+        return _player;
+    }
 
     public override void _Ready()
     {
@@ -27,6 +33,7 @@ public partial class GameManager : Node2D
         storageNode = this;
 
         _player = FindExistingPlayer() ?? SpawnPlayer();
+        backgroundMover.SetPlayer(_player);
         SpawnLoop();
     }
 
