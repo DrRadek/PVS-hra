@@ -64,8 +64,11 @@ public partial class MovableObject : Node
 
         if (rb == null) return;
         var dir = MapDirEnumToVector(currentDir);
-        //if (dir.LengthSquared() > 1f) dir = dir.Normalized();
-        rb.LinearVelocity = dir * speed;
+        if (currentDirAnim != CurrentDirection.None)
+        {
+            //rb.LinearVelocity = dir * speed;
+            rb.ApplyForce(dir * speed);
+        }
     }
 
     public RigidBody2D GetRigidBody2D() => rb;

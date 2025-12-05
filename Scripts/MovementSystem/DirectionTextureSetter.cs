@@ -17,6 +17,9 @@ public partial class DirectionTextureSetter : Node
         movableObject.OnCurrentDirChanged += MovableObject_OnCurrentDirChanged;
     }
 
+    int lastTextureIndex;
+    float timeSinceLastChange = 0;
+
     private void MovableObject_OnCurrentDirChanged(MovableObject.CurrentDirection currentDirection)
     {
         int index = 0;
@@ -48,6 +51,7 @@ public partial class DirectionTextureSetter : Node
                 break;
         }
 
-        spriteToSetTo.Texture = textures[index];
+        if (index != 0)
+            spriteToSetTo.Texture = textures[index];
     }
 }
