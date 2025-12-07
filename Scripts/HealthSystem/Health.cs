@@ -6,8 +6,15 @@ public partial class Health : AbstractHealth
     [Export] float maxHealth = 100;
     [Export] float health = 100;
     [Export] Node2D parentPosition;
+    [Export] bool updateGlobalGameUI = false;
 
     HealthPopup lastPopup;
+
+    public override void _Ready()
+    {
+        if (updateGlobalGameUI)
+            GameUI.Instance.UpdateHp(health, maxHealth);
+    }
 
     public override bool GetHit(float amount, bool isAbsolute = true)
     {
@@ -16,14 +23,23 @@ public partial class Health : AbstractHealth
         float damageAmount = isAbsolute ? amount : maxHealth * amount;
         health -= damageAmount;
 
-        if (!IsInstanceValid(lastPopup))
+        if (!updateGlobalGameUI)
         {
-            lastPopup = (HealthPopup)CommonScenes.healthPopupScene.Instantiate();
-            GameManager.Instance.storageNode.AddChild(lastPopup);
-        }
+            // Enemies use popup
+            if (!IsInstanceValid(lastPopup))
+            {
+                lastPopup = (HealthPopup)CommonScenes.healthPopupScene.Instantiate();
+                GameManager.Instance.storageNode.AddChild(lastPopup);
+            }
 
-        lastPopup.GlobalPosition = parentPosition.GlobalPosition;
-        lastPopup.Init(damageAmount, health, maxHealth);
+            lastPopup.GlobalPosition = parentPosition.GlobalPosition;
+            lastPopup.Init(damageAmount, health, maxHealth);
+        }
+        else
+        {
+            // Player uses global UI
+            GameUI.Instance.UpdateHp(health, maxHealth);
+        }
 
         return health > 0;
     }
@@ -33,5 +49,10 @@ public partial class Health : AbstractHealth
         // absolute = true => heal exactly the amount
         // absolute = false => heal percentage
         health += isAbsolute ? amount : maxHealth * amount;
+
+        if (updateGlobalGameUI)
+        {
+            GameUI.Instance.UpdateHp(health, maxHealth);
+        }
     }
 }

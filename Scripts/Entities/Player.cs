@@ -7,6 +7,7 @@ public partial class Player : RigidBody2D, IHittable, IXpReceiver
     [Export] NodePath functionsManagerLocation;
     [Export] LevelManager levelManager; 
     [Export] public Node2D storageNode;
+    [Export] bool updateGlobalGameUI;
     AbstractHealthManager healthManager;
     FunctionsManager functionsManager;
 
@@ -37,7 +38,7 @@ public partial class Player : RigidBody2D, IHittable, IXpReceiver
 
     public void ReceiveXp(int amount)
     {
-        //GD.Print($"Player Collected {amount} xp");
+        GD.Print($"Player Collected {amount} xp");
         levelManager.AddXp(amount);
     }
 }
