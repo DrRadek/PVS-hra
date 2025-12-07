@@ -78,6 +78,30 @@ public partial class FunctionsManager : Node
         }
     }
 
+    // Public accessors for PauseMenu and other UI
+    public IReadOnlyList<TrajectoryFunction> GetUnlockedTrajectoryFunctions()
+    {
+        return unlockedTrajectoryFunctions.AsReadOnly();
+    }
+
+    public IReadOnlyList<DamageFunction> GetUnlockedDamageFunctions()
+    {
+        return unlockedDamageFunctions.AsReadOnly();
+    }
+
+    // Replace functions on a given attack slot (creates a new Attack instance preserving upgrade level)
+    public void SetAttackFunctions(int attackIndex, TrajectoryFunction traj, DamageFunction dmg)
+    {
+        if (attackIndex < 0 || attackIndex >= usedAttacks.Count) return;
+
+        var old = usedAttacks[attackIndex];
+        var newAtk = new Attack(projectileScenes.Count > 0 ? projectileScenes[0] : null, traj, dmg, rotationNode);
+        newAtk.UpgradeLevel = old.UpgradeLevel;
+        if (attacksEnabled) newAtk.Enable(); else newAtk.Disable();
+
+        usedAttacks[attackIndex] = newAtk;
+    }
+
     public void DisableAll()
     {
         attacksEnabled = false;
@@ -90,6 +114,9 @@ public partial class FunctionsManager : Node
     {
         protected int upgradeLevel = 1;
         protected Projectile.FunctionEventHandler functionDefinition;
+        protected string description = "f(x)";
+
+        public string Description => description;
 
         public int UpgradeLevel
         {
@@ -113,6 +140,7 @@ public partial class FunctionsManager : Node
         public SinTrajectoryFunction()
         {
             functionDefinition = (x) => Mathf.Sin(x);
+            description = "sin(x)";
         }
     }
 
@@ -121,6 +149,7 @@ public partial class FunctionsManager : Node
         public SinDamageFunction()
         {
             functionDefinition = (x) => Mathf.Abs(Mathf.Sin(x)) * upgradeLevel + upgradeLevel;
+            description = "1+|sin(x)| (scaled by upgrade)";
         }
     }
 

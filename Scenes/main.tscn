@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://bg4vt12bvfg0f"]
+[gd_scene load_steps=23 format=3 uid="uid://bg4vt12bvfg0f"]
 
 [ext_resource type="Script" uid="uid://dwbc86tta5cs3" path="res://Scripts/GameManager.cs" id="1_8gbba"]
 [ext_resource type="PackedScene" uid="uid://d1mseb2rcga46" path="res://Scenes/player.tscn" id="1_r150o"]
@@ -8,6 +8,8 @@
 [ext_resource type="Script" uid="uid://4cpqp3133q7y" path="res://Scripts/Helpers/BackgroundMover.cs" id="6_21xkr"]
 [ext_resource type="Texture2D" uid="uid://7xn7dvo628j1" path="res://icon.svg" id="7_6bp64"]
 [ext_resource type="Script" uid="uid://c7scn8jlrlgml" path="res://Scripts/UI/GameUI.cs" id="8_344ge"]
+[ext_resource type="Script" uid="uid://dyl7hu2tslur8" path="res://Scripts/UI/PauseMenu.cs" id="9_pause"]
+[ext_resource type="Texture2D" uid="uid://b0mnpebvwineo" path="res://Assets/Player/lod1-4.bmp" id="10_lod14"]
 
 [sub_resource type="Gradient" id="Gradient_21xkr"]
 offsets = PackedFloat32Array(0)
@@ -218,13 +220,14 @@ hpProgressBar = NodePath("../bottom/health2")
 
 [node name="PauseMenu" type="Control" parent="GameUI"]
 layout_mode = 3
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("9_pause")
 
 [node name="background" type="ColorRect" parent="GameUI/PauseMenu"]
 layout_mode = 1
@@ -240,3 +243,117 @@ offset_bottom = 300.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.42352942, 0.43137255, 0.42745098, 0.5529412)
+clip_contents = true
+
+[node name="LeftPanel" type="Panel" parent="GameUI/PauseMenu/background"]
+layout_mode = 3
+anchors_preset = 13
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.33
+anchor_bottom = 1.0
+margin_left = 10.0
+margin_top = 10.0
+margin_right = -10.0
+margin_bottom = -10.0
+custom_min_size = Vector2(260, 240)
+
+[node name="TrajectoryList" type="ItemList" parent="GameUI/PauseMenu/background/LeftPanel"]
+layout_mode = 3
+anchors_preset = 7
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 8.0
+margin_right = -8.0
+margin_bottom = -8.0
+select_mode = 3
+custom_min_size = Vector2(220, 200)
+
+[node name="CenterPanel" type="Panel" parent="GameUI/PauseMenu/background"]
+layout_mode = 3
+anchors_preset = 13
+anchor_left = 0.33
+anchor_top = 0.0
+anchor_right = 0.66
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 8.0
+margin_right = -8.0
+margin_bottom = -8.0
+custom_min_size = Vector2(360, 300)
+
+[node name="ShipPreview" type="Control" parent="GameUI/PauseMenu/background/CenterPanel"]
+layout_mode = 3
+anchors_preset = 7
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 8.0
+margin_right = -8.0
+margin_bottom = -8.0
+
+[node name="ShipSprite" type="Sprite2D" parent="GameUI/PauseMenu/background/CenterPanel/ShipPreview"]
+texture = ExtResource("10_lod14")
+anchors_preset = 5
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+position = Vector2(0,0)
+scale = Vector2(1,1)
+
+[node name="Selector" type="Control" parent="GameUI/PauseMenu/background/CenterPanel/ShipPreview"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+position = Vector2(60, 0)
+size = Vector2(16,16)
+
+[node name="SelectorRect" type="ColorRect" parent="GameUI/PauseMenu/background/CenterPanel/ShipPreview/Selector"]
+layout_mode = 0
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 8.0
+offset_bottom = 8.0
+color = Color(1, 1, 1, 0.6)
+
+[node name="RightPanel" type="Panel" parent="GameUI/PauseMenu/background"]
+layout_mode = 3
+anchors_preset = 13
+anchor_left = 0.66
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 10.0
+margin_top = 10.0
+margin_right = -10.0
+margin_bottom = -10.0
+custom_min_size = Vector2(260, 240)
+
+[node name="DamageList" type="ItemList" parent="GameUI/PauseMenu/background/RightPanel"]
+layout_mode = 3
+anchors_preset = 7
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 8.0
+margin_right = -8.0
+margin_bottom = -8.0
+select_mode = 3
+custom_min_size = Vector2(220, 200)
+
+[node name="Tooltip" type="Label" parent="GameUI/PauseMenu/background"]
+layout_mode = 0
+anchor_left = 0.33
+anchor_right = 0.66
+offset_top = -20.0
+offset_bottom = -20.0
