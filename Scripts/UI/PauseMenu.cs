@@ -80,9 +80,9 @@ public partial class PauseMenu : Control
         PopulateLists();
 
         if (trajList != null)
-            trajList.Connect("item_selected", new Callable(this, nameof(OnTrajSelected)));
+            trajList.ItemSelected += OnTrajSelected;
         if (dmgList != null)
-            dmgList.Connect("item_selected", new Callable(this, nameof(OnDmgSelected)));
+            dmgList.ItemSelected += OnDmgSelected;
 
         if (selector != null)
             selector.MouseFilter = MouseFilterEnum.Stop;
@@ -193,16 +193,17 @@ public partial class PauseMenu : Control
 
     // reflection helper removed; using public getters on FunctionsManager now
 
-    private void OnTrajSelected(int idx)
+    private void OnTrajSelected(long idx)
     {
-        selectedTraj = idx;
+        GD.Print(idx);
+        selectedTraj = (int)idx;
         UpdateSelectorVisuals();
         ApplySelectionsToAttack();
     }
 
-    private void OnDmgSelected(int idx)
+    private void OnDmgSelected(long idx)
     {
-        selectedDmg = idx;
+        selectedDmg = (int)idx;
         UpdateSelectorVisuals();
         ApplySelectionsToAttack();
     }
@@ -454,7 +455,7 @@ public partial class PauseMenu : Control
         // If mouse is near the selector, show selector tooltip (priority)
         if (selector != null && mouse.DistanceTo(selector.GlobalPosition) <= 24f)
         {
-            ShowTooltipForSelection();
+            ShowTooltipAt(mouse);
         }
         else if (bestIdx >= 0 && bestDist <= 16f)
         {

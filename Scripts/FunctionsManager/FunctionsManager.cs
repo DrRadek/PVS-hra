@@ -29,8 +29,14 @@ public partial class FunctionsManager : Node
         var traj = new SinTrajectoryFunction();
         var dmg = new SinDamageFunction();
 
+        var traj2 = new CosTrajectoryFunction();
+        var dmg2 = new CosDamageFunction();
+
         unlockedTrajectoryFunctions.Add(traj);
         unlockedDamageFunctions.Add(dmg);
+
+        unlockedTrajectoryFunctions.Add(traj2);
+        unlockedDamageFunctions.Add(dmg2);
 
         if (projectileScenes.Count > 0)
         {
@@ -42,6 +48,16 @@ public partial class FunctionsManager : Node
             );
 
             usedAttacks.Add(atk);
+
+            var atk2 = new Attack(
+                projectileScenes[0],
+                traj2,
+                dmg2,
+                rotationNode
+            );
+
+
+            usedAttacks.Add(atk2);
         }
 
         EnableAll();
@@ -144,12 +160,30 @@ public partial class FunctionsManager : Node
         }
     }
 
+    public class CosTrajectoryFunction : TrajectoryFunction
+    {
+        public CosTrajectoryFunction()
+        {
+            functionDefinition = (x) => Mathf.Cos(x) - 1;
+            description = "cos(x) - 1";
+        }
+    }
+
     public class SinDamageFunction : DamageFunction
     {
         public SinDamageFunction()
         {
             functionDefinition = (x) => Mathf.Abs(Mathf.Sin(x)) * upgradeLevel + upgradeLevel;
-            description = "1+|sin(x)| (scaled by upgrade)";
+            description = $"{upgradeLevel}+|sin(x)|*{upgradeLevel}";
+        }
+    }
+
+    public class CosDamageFunction : DamageFunction
+    {
+        public CosDamageFunction()
+        {
+            functionDefinition = (x) => Mathf.Abs(Mathf.Cos(x)) * upgradeLevel + upgradeLevel;
+            description = $"{upgradeLevel}+|cos(x)|*{upgradeLevel}";
         }
     }
 

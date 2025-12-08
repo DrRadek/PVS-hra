@@ -221,8 +221,6 @@ hpProgressBar = NodePath("../bottom/health2")
 [node name="PauseMenu" type="Control" parent="GameUI"]
 layout_mode = 3
 anchors_preset = 15
-anchor_left = 0.0
-anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
@@ -230,6 +228,7 @@ grow_vertical = 2
 script = ExtResource("9_pause")
 
 [node name="background" type="ColorRect" parent="GameUI/PauseMenu"]
+clip_contents = true
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -243,78 +242,52 @@ offset_bottom = 300.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.42352942, 0.43137255, 0.42745098, 0.5529412)
-clip_contents = true
 
 [node name="LeftPanel" type="Panel" parent="GameUI/PauseMenu/background"]
-layout_mode = 3
-anchors_preset = 13
-anchor_left = 0.0
-anchor_top = 0.0
+layout_mode = 1
+anchors_preset = -1
 anchor_right = 0.33
 anchor_bottom = 1.0
-margin_left = 10.0
-margin_top = 10.0
-margin_right = -10.0
-margin_bottom = -10.0
-custom_min_size = Vector2(260, 240)
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="TrajectoryList" type="ItemList" parent="GameUI/PauseMenu/background/LeftPanel"]
-layout_mode = 3
-anchors_preset = 7
-anchor_left = 0.0
-anchor_top = 0.0
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 8.0
-margin_top = 8.0
-margin_right = -8.0
-margin_bottom = -8.0
-select_mode = 3
-custom_min_size = Vector2(220, 200)
+grow_horizontal = 2
+grow_vertical = 0
 
 [node name="CenterPanel" type="Panel" parent="GameUI/PauseMenu/background"]
-layout_mode = 3
-anchors_preset = 13
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.33
-anchor_top = 0.0
 anchor_right = 0.66
 anchor_bottom = 1.0
-margin_left = 8.0
-margin_top = 8.0
-margin_right = -8.0
-margin_bottom = -8.0
-custom_min_size = Vector2(360, 300)
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="ShipPreview" type="Control" parent="GameUI/PauseMenu/background/CenterPanel"]
-layout_mode = 3
-anchors_preset = 7
-anchor_left = 0.0
-anchor_top = 0.0
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 8.0
-margin_top = 8.0
-margin_right = -8.0
-margin_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 0
 
 [node name="ShipSprite" type="Sprite2D" parent="GameUI/PauseMenu/background/CenterPanel/ShipPreview"]
 texture = ExtResource("10_lod14")
-anchors_preset = 5
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-position = Vector2(0,0)
-scale = Vector2(1,1)
 
 [node name="Selector" type="Control" parent="GameUI/PauseMenu/background/CenterPanel/ShipPreview"]
-anchors_preset = 5
+anchors_preset = 0
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-position = Vector2(60, 0)
-size = Vector2(16,16)
+offset_left = 60.0
+offset_right = 76.0
+offset_bottom = 16.0
 
 [node name="SelectorRect" type="ColorRect" parent="GameUI/PauseMenu/background/CenterPanel/ShipPreview/Selector"]
 layout_mode = 0
@@ -325,31 +298,21 @@ offset_bottom = 8.0
 color = Color(1, 1, 1, 0.6)
 
 [node name="RightPanel" type="Panel" parent="GameUI/PauseMenu/background"]
-layout_mode = 3
-anchors_preset = 13
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.66
-anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 10.0
-margin_top = 10.0
-margin_right = -10.0
-margin_bottom = -10.0
-custom_min_size = Vector2(260, 240)
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="DamageList" type="ItemList" parent="GameUI/PauseMenu/background/RightPanel"]
-layout_mode = 3
-anchors_preset = 7
-anchor_left = 0.0
-anchor_top = 0.0
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 8.0
-margin_top = 8.0
-margin_right = -8.0
-margin_bottom = -8.0
-select_mode = 3
-custom_min_size = Vector2(220, 200)
+grow_horizontal = 2
+grow_vertical = 0
 
 [node name="Tooltip" type="Label" parent="GameUI/PauseMenu/background"]
 layout_mode = 0
