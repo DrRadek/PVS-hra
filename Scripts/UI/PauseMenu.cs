@@ -207,16 +207,8 @@ public partial class PauseMenu : Control
 
     private void OnRestartPressed()
     {
-        // try to reload current scene if available
-        try
-        {
-            GetTree().ReloadCurrentScene();
-        }
-        catch
-        {
-            // fallback: quit (during editor this may be preferable)
-            GetTree().Quit();
-        }
+        MainMain.Instance.RestartGame();
+        return;
     }
 
     private void UpdateModeVisuals()

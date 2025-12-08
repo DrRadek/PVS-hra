@@ -11,7 +11,7 @@ public partial class GameUI : Node
     public static GameUI Instance { get; private set; }
     public override void _Ready()
     {
-        Instance ??= this;
+        Instance = this;
     }
 
     public void UpdateLevel(int level, int currentXp, int xpRequired)

@@ -27,8 +27,7 @@ public partial class GameManager : Node2D
 
     public override void _Ready()
     {
-        if (Instance == null)
-            Instance = this;
+        Instance = this;
 
         storageNode = this;
 
