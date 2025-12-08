@@ -23,8 +23,14 @@ public partial class MainMain : Node
 
     public override void _Ready()
     {
+        if (Instance != null && Instance != this) GD.Print("MainMain: replacing existing Instance");
         Instance = this;
 
         RestartGame();
+    }
+
+    public override void _ExitTree()
+    {
+        if (Instance == this) Instance = null;
     }
 }

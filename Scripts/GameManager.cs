@@ -27,6 +27,7 @@ public partial class GameManager : Node2D
 
     public override void _Ready()
     {
+        if (Instance != null && Instance != this) GD.Print("GameManager: replacing existing Instance");
         Instance = this;
 
         storageNode = this;
@@ -34,6 +35,11 @@ public partial class GameManager : Node2D
         _player = FindExistingPlayer() ?? SpawnPlayer();
         backgroundMover.SetPlayer(_player);
         SpawnLoop();
+    }
+
+    public override void _ExitTree()
+    {
+        if (Instance == this) Instance = null;
     }
 
     // ——— SPAWN PLAYER —————————————————————————————————————————————
