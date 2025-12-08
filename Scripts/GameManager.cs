@@ -37,6 +37,31 @@ public partial class GameManager : Node2D
         SpawnLoop();
     }
 
+    public override void _Input(InputEvent @event)
+    {
+        if (@event is InputEventKey kb && kb.Pressed && !kb.Echo && kb.Keycode == Key.Escape)
+        {
+            TogglePauseMenu();
+        }
+    }
+
+    private void TogglePauseMenu()
+    {
+        // find PauseMenu under GameUI or current scene
+        var pause = GetTree().Root.FindChild("PauseMenu", true, false) as Control;
+        if (pause == null)
+        {
+            GD.Print("GameManager: PauseMenu node not found to toggle");
+            return;
+        }
+
+        bool willShow = false;
+        pause.Visible = willShow;
+        // Pause the scene tree when showing the menu, unpause when hiding
+        GetTree().Paused = willShow;
+        GD.Print($"GameManager: PauseMenu {(willShow?"shown":"hidden")}, Paused={GetTree().Paused}");
+    }
+
     public override void _ExitTree()
     {
         if (Instance == this) Instance = null;
@@ -72,6 +97,13 @@ public partial class GameManager : Node2D
         while (true)
         {
             _alive.RemoveAll(n => !IsInstanceValid(n));
+
+            // skip spawning while the scene is paused
+            if (GetTree().Paused)
+            {
+                await ToSignal(GetTree().CreateTimer(EnemyInterval), "timeout");
+                continue;
+            }
 
             if (_player != null && EnemyScene != null && _alive.Count < EnemyMaxAlive)
             {

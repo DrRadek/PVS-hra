@@ -127,7 +127,7 @@ public partial class PauseMenu : Control
         if (shipSprite != null)
         {
             originalShipScale = shipSprite.Scale;
-            shipSprite.Scale = originalShipScale * renderScale * 2;
+            shipSprite.Scale = originalShipScale * renderScale * 1.5f;
         }
 
         // defer sizing until after layout to avoid RectSize being zero in some runtime setups
@@ -496,6 +496,16 @@ public partial class PauseMenu : Control
     public override void _Input(InputEvent @event)
     {
         if (selectors.Count == 0 || shipPreview == null) return;
+
+        // allow PauseMenu to handle ESC while paused (PauseMode.Process)
+        if (@event is InputEventKey kb && kb.Pressed && !kb.Echo && kb.Keycode == Key.Escape)
+        {
+            // toggle pause state
+            bool willShow = !Visible;
+            Visible = willShow;
+            GetTree().Paused = willShow;
+            return;
+        }
 
         if (@event is InputEventMouseButton mb && mb.ButtonIndex == MouseButton.Left)
         {
