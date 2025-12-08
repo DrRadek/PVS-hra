@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata.Ecma335;
 
 public partial class PauseMenu : Control
 {
@@ -24,7 +25,8 @@ public partial class PauseMenu : Control
 
     private Vector2 selectorOffset = Vector2.Zero;
     private bool dragging = false;
-    private float renderScale = 0.5f;
+    private float actualScale = 1;
+    private float renderScale { get => actualScale * 0.5f; set => actualScale = value; }
     private Vector2 originalShipScale = Vector2.One;
 
     // cached samples for hover detection
@@ -111,7 +113,7 @@ public partial class PauseMenu : Control
         if (shipSprite != null)
         {
             originalShipScale = shipSprite.Scale;
-            shipSprite.Scale = originalShipScale * renderScale;
+            shipSprite.Scale = originalShipScale * renderScale * 2;
         }
 
         // defer sizing until after layout to avoid RectSize being zero in some runtime setups
@@ -480,7 +482,7 @@ public partial class PauseMenu : Control
     }
     private void DrawFunctionsPreview(Func<float, float> trajFn, Func<float, float> dmgFn, Vector2 centerLocal, Control selNode, int slotIndex, bool isActive)
     {
-        int samples = 120;
+        int samples = (int)(120.0f / renderScale);
         float step = 10f; // pixels per sample before scaling
 
         var trajPoints = new Vector2[samples];
