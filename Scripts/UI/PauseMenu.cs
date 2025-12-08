@@ -24,8 +24,7 @@ public partial class PauseMenu : Control
 
     private Vector2 selectorOffset = Vector2.Zero;
     private bool dragging = false;
-    private float renderScale = 0.1f;
-    [Export] public float previewScale = 1f;
+    private float renderScale = 0.5f;
     private Vector2 originalShipScale = Vector2.One;
 
     // cached samples for hover detection
@@ -112,9 +111,9 @@ public partial class PauseMenu : Control
         if (shipSprite != null)
         {
             originalShipScale = shipSprite.Scale;
-            shipSprite.Scale = originalShipScale * previewScale;
+            shipSprite.Scale = originalShipScale * renderScale;
         }
-        renderScale = previewScale;
+
         // defer sizing until after layout to avoid RectSize being zero in some runtime setups
         CallDeferred(nameof(DeferredApplyMinSize));
         CallDeferred(nameof(DeferredPositionShipAndSelector));
@@ -216,7 +215,7 @@ public partial class PauseMenu : Control
                     if (count > 1)
                         angle = Mathf.Lerp(-0.25f, 0.25f, (float)i / (count - 1));
                 }
-                var offset = new Vector2(60f * previewScale, 0f).Rotated(angle);
+                var offset = new Vector2(60f * renderScale, 0f).Rotated(angle);
                 s.GlobalPosition = shipSprite.GlobalPosition + offset;
             }
         }
@@ -699,7 +698,7 @@ public partial class PauseMenu : Control
         Vector2 center = shipSprite.GlobalPosition;
         Vector2 dir = GetFireDirection();
         // project the point onto firing axis to get signed x in pixels
-        float x = (globalPoint - center).Dot(dir);
+        float x = (globalPoint - center).Dot(dir) * 0.01f / renderScale;
 
         float y = 0f;
         float dmg = 0f;
@@ -707,13 +706,13 @@ public partial class PauseMenu : Control
         if (trajs != null && selectedTraj != null && activeSelector >= 0 && activeSelector < selectedTraj.Length && selectedTraj[activeSelector] >= 0 && selectedTraj[activeSelector] < trajs.Count)
         {
             var fn = trajs[selectedTraj[activeSelector]].FunctionDefinition as Delegate;
-            try { y = (float)fn.DynamicInvoke(x * 0.01f); } catch { y = 0f; }
+            try { y = (float)fn.DynamicInvoke(x); } catch { y = 0f; }
         }
 
         if (dmgs != null && selectedDmg != null && activeSelector >= 0 && activeSelector < selectedDmg.Length && selectedDmg[activeSelector] >= 0 && selectedDmg[activeSelector] < dmgs.Count)
         {
             var fn = dmgs[selectedDmg[activeSelector]].FunctionDefinition as Delegate;
-            try { dmg = (float)fn.DynamicInvoke(x * 0.01f); } catch { dmg = 0f; }
+            try { dmg = (float)fn.DynamicInvoke(x); } catch { dmg = 0f; }
         }
 
         string trajDesc = "-";
@@ -755,20 +754,20 @@ public partial class PauseMenu : Control
         Vector2 mouse = GetGlobalMousePosition();
         Vector2 center = shipSprite.GlobalPosition;
         Vector2 dir = GetFireDirection();
-        float x = (mouse - center).Dot(dir);
+        float x = (mouse - center).Dot(dir) * 0.01f / renderScale;
         float y = 0f;
         float dmg = 0f;
 
         if (trajs != null && selectedTraj != null && activeSelector >= 0 && activeSelector < selectedTraj.Length && selectedTraj[activeSelector] >= 0 && selectedTraj[activeSelector] < trajs.Count)
         {
             var fn = trajs[selectedTraj[activeSelector]].FunctionDefinition as Delegate;
-            try { y = (float)fn.DynamicInvoke(x * 0.01f); } catch { y = 0f; }
+            try { y = (float)fn.DynamicInvoke(x); } catch { y = 0f; }
         }
 
         if (dmgs != null && selectedDmg != null && activeSelector >= 0 && activeSelector < selectedDmg.Length && selectedDmg[activeSelector] >= 0 && selectedDmg[activeSelector] < dmgs.Count)
         {
             var fn = dmgs[selectedDmg[activeSelector]].FunctionDefinition as Delegate;
-            try { dmg = (float)fn.DynamicInvoke(x * 0.01f); } catch { dmg = 0f; }
+            try { dmg = (float)fn.DynamicInvoke(x); } catch { dmg = 0f; }
         }
 
         if (tooltip != null)
