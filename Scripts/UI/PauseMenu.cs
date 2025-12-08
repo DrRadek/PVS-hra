@@ -205,10 +205,18 @@ public partial class PauseMenu : Control
             {
                 var s = selectors[i];
                 if (s == null) continue;
-                float angleOffset = 0f;
-                if (count > 1)
-                    angleOffset = Mathf.Lerp(-0.25f, 0.25f, (float)i / (count - 1));
-                var offset = new Vector2(60f * previewScale, 0f).Rotated(angleOffset);
+                float angle = 0f;
+                if (functionsManager != null)
+                {
+                    // use stored rotation for each attack if present
+                    angle = functionsManager.GetAttackRotation(i);
+                }
+                else
+                {
+                    if (count > 1)
+                        angle = Mathf.Lerp(-0.25f, 0.25f, (float)i / (count - 1));
+                }
+                var offset = new Vector2(60f * previewScale, 0f).Rotated(angle);
                 s.GlobalPosition = shipSprite.GlobalPosition + offset;
             }
         }
@@ -621,6 +629,13 @@ public partial class PauseMenu : Control
             UpdateSelectorVisuals();
             // show tooltip at selector while dragging
             ShowTooltipForSelection();
+            // save rotation to functions manager so attack remembers orientation
+            if (functionsManager != null && shipSprite != null && s != null)
+            {
+                Vector2 dir = (s.GlobalPosition - shipSprite.GlobalPosition);
+                if (dir.Length() > 0.0001f)
+                    functionsManager.SetAttackRotation(activeSelector, dir.Angle());
+            }
         }
 
         // handle hover tooltip

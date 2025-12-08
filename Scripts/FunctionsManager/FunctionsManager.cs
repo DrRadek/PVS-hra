@@ -113,9 +113,24 @@ public partial class FunctionsManager : Node
         var old = usedAttacks[attackIndex];
         var newAtk = new Attack(projectileScenes.Count > 0 ? projectileScenes[0] : null, traj, dmg, rotationNode);
         newAtk.UpgradeLevel = old.UpgradeLevel;
+        // preserve rotation offset from previous attack
+        try { newAtk.RotationOffset = old.RotationOffset; } catch {}
         if (attacksEnabled) newAtk.Enable(); else newAtk.Disable();
 
         usedAttacks[attackIndex] = newAtk;
+    }
+
+    // Set rotation offset for an attack slot (radians)
+    public void SetAttackRotation(int attackIndex, float rotation)
+    {
+        if (attackIndex < 0 || attackIndex >= usedAttacks.Count) return;
+        usedAttacks[attackIndex].RotationOffset = rotation;
+    }
+
+    public float GetAttackRotation(int attackIndex)
+    {
+        if (attackIndex < 0 || attackIndex >= usedAttacks.Count) return 0f;
+        return usedAttacks[attackIndex].RotationOffset;
     }
 
     public void DisableAll()
@@ -228,6 +243,9 @@ public partial class FunctionsManager : Node
         private int shotsRemaining = 0;
         private bool enabled = false;
 
+        // rotation offset in radians applied to fired projectiles
+        public float RotationOffset { get; set; } = 0f;
+
         public Attack(PackedScene scene,
                       TrajectoryFunction traj,
                       DamageFunction dmg,
@@ -308,7 +326,7 @@ public partial class FunctionsManager : Node
             var helperNode = new Node2D();
             GameManager.Instance.storageNode.AddChild(helperNode);
             helperNode.GlobalPosition = rotationNode.GlobalPosition;
-            helperNode.GlobalRotation = angle;
+            helperNode.GlobalRotation = angle + RotationOffset;
             helperNode.Scale = rotationNode.Scale;
 
             helperNode.AddChild(inst);
