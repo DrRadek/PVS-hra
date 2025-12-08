@@ -208,7 +208,6 @@ public partial class PauseMenu : Control
     private void OnRestartPressed()
     {
         MainMain.Instance.RestartGame();
-        return;
     }
 
     private void UpdateModeVisuals()
