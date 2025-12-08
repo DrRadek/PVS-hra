@@ -20,7 +20,7 @@ public partial class PauseMenu : Control
     private Vector2 selectorOffset = Vector2.Zero;
     private bool dragging = false;
     private float renderScale = 0.1f;
-    [Export] public float previewScale = 0.5f;
+    [Export] public float previewScale = 1f;
     private Vector2 originalShipScale = Vector2.One;
 
     // cached samples for hover detection
@@ -414,6 +414,8 @@ public partial class PauseMenu : Control
             var local = shipPreview.GetLocalMousePosition() + selectorOffset;
             if (selector != null) selector.Position = local;
             UpdateSelectorVisuals();
+            // show tooltip at selector while dragging
+            ShowTooltipForSelection();
         }
 
         // handle hover tooltip
@@ -449,14 +451,69 @@ public partial class PauseMenu : Control
             }
         }
 
-        if (bestIdx >= 0 && bestDist <= 16f)
+        // If mouse is near the selector, show selector tooltip (priority)
+        if (selector != null && mouse.DistanceTo(selector.GlobalPosition) <= 24f)
         {
-            ShowTooltipForSample(bestIdx, bestIsTraj);
+            ShowTooltipForSelection();
+        }
+        else if (bestIdx >= 0 && bestDist <= 16f)
+        {
+            // use actual mouse position (continuous) to compute values
+            ShowTooltipAt(mouse);
         }
         else
         {
-            if (tooltip != null) tooltip.Text = "";
+            if (tooltip != null) { tooltip.Text = ""; tooltip.Visible = false; }
         }
+    }
+
+    // Evaluate selected functions at a global point (continuous distance) and show tooltip
+    private void ShowTooltipAt(Vector2 globalPoint)
+    {
+        if (functionsManager == null || tooltip == null || shipSprite == null) return;
+
+        var trajs = functionsManager.GetUnlockedTrajectoryFunctions();
+        var dmgs = functionsManager.GetUnlockedDamageFunctions();
+
+        Vector2 center = shipSprite.GlobalPosition;
+        Vector2 dir = GetFireDirection();
+        // project the point onto firing axis to get signed x in pixels
+        float x = (globalPoint - center).Dot(dir);
+
+        float y = 0f;
+        float dmg = 0f;
+
+        if (trajs != null && selectedTraj >= 0 && selectedTraj < trajs.Count)
+        {
+            var fn = trajs[selectedTraj].FunctionDefinition as Delegate;
+            try { y = (float)fn.DynamicInvoke(x * 0.01f); } catch { y = 0f; }
+        }
+
+        if (dmgs != null && selectedDmg >= 0 && selectedDmg < dmgs.Count)
+        {
+            var fn = dmgs[selectedDmg].FunctionDefinition as Delegate;
+            try { dmg = (float)fn.DynamicInvoke(x * 0.01f); } catch { dmg = 0f; }
+        }
+
+        string trajDesc = (trajs != null && selectedTraj >= 0 && selectedTraj < trajs.Count) ? trajs[selectedTraj].Description : "-";
+        string dmgDesc = (dmgs != null && selectedDmg >= 0 && selectedDmg < dmgs.Count) ? dmgs[selectedDmg].Description : "-";
+
+        tooltip.Text = $"x={x:F2} y={y:F2} dmg={dmg:F2}\ntraj: {trajDesc}\ndmg: {dmgDesc}";
+        tooltip.Visible = true;
+        var tipSize = tooltip.Size;
+        tooltip.GlobalPosition = globalPoint + new Vector2(12f, -tipSize.Y - 8f);
+    }
+
+    // Helper: get firing direction (unit vector) from ship center toward selector
+    private Vector2 GetFireDirection()
+    {
+        if (shipSprite == null) return Vector2.Right;
+        if (selector != null)
+        {
+            Vector2 v = selector.GlobalPosition - shipSprite.GlobalPosition;
+            if (v.Length() > 0.0001f) return v.Normalized();
+        }
+        return Vector2.Right;
     }
 
     private void ShowTooltipForSelection()
@@ -467,27 +524,31 @@ public partial class PauseMenu : Control
         var dmgs = functionsManager.GetUnlockedDamageFunctions();
 
         if (selector == null || shipSprite == null) return;
-        float distance = (selector.GlobalPosition - shipSprite.GlobalPosition).Length();
+        // use mouse position projected onto firing axis so tooltip follows the mouse inside the selector square
+        Vector2 mouse = GetGlobalMousePosition();
+        Vector2 center = shipSprite.GlobalPosition;
+        Vector2 dir = GetFireDirection();
+        float x = (mouse - center).Dot(dir);
         float y = 0f;
         float dmg = 0f;
 
         if (trajs != null && selectedTraj >= 0 && selectedTraj < trajs.Count)
         {
             var fn = trajs[selectedTraj].FunctionDefinition as Delegate;
-            try { y = (float)fn.DynamicInvoke(distance * 0.01f); } catch { y = 0f; }
+            try { y = (float)fn.DynamicInvoke(x * 0.01f); } catch { y = 0f; }
         }
 
         if (dmgs != null && selectedDmg >= 0 && selectedDmg < dmgs.Count)
         {
             var fn = dmgs[selectedDmg].FunctionDefinition as Delegate;
-            try { dmg = (float)fn.DynamicInvoke(distance * 0.01f); } catch { dmg = 0f; }
+            try { dmg = (float)fn.DynamicInvoke(x * 0.01f); } catch { dmg = 0f; }
         }
 
         if (tooltip != null)
         {
             string trajDesc = (trajs != null && selectedTraj >= 0 && selectedTraj < trajs.Count) ? trajs[selectedTraj].Description : "-";
             string dmgDesc = (dmgs != null && selectedDmg >= 0 && selectedDmg < dmgs.Count) ? dmgs[selectedDmg].Description : "-";
-            tooltip.Text = $"dist={distance:F1} y={y:F2} dmg={dmg:F2}\ntraj: {trajDesc}\ndmg: {dmgDesc}";
+            tooltip.Text = $"x={x:F2} y={y:F2} dmg={dmg:F2}\ntraj: {trajDesc}\ndmg: {dmgDesc}";
             tooltip.Visible = true;
             // position tooltip to the right and slightly above selector, using Size
             var tipSize = tooltip.Size;
@@ -498,22 +559,32 @@ public partial class PauseMenu : Control
 
     private void ShowTooltipForSample(int idx, bool isTraj)
     {
-        if (lastSampleDistances == null || tooltip == null) return;
-        float distance = idx * 10f; // matches step
+        if (lastSampleDistances == null || tooltip == null || shipSprite == null) return;
+        // use mouse projection along firing axis to compute continuous x
+        Vector2 center = shipSprite.GlobalPosition;
+        Vector2 dir = GetFireDirection();
+        Vector2 mouse = GetGlobalMousePosition();
+        float x = (mouse - center).Dot(dir);
 
         float y = 0f; float dmg = 0f;
-        if (lastTrajValues != null && idx < lastTrajValues.Length) y = lastTrajValues[idx];
-        if (lastDmgValues != null && idx < lastDmgValues.Length) dmg = lastDmgValues[idx];
-        // prefer raw damage sample if available
-        if (lastRawDmgValues != null && idx < lastRawDmgValues.Length) dmg = lastRawDmgValues[idx];
+        var trajs = functionsManager?.GetUnlockedTrajectoryFunctions();
+        var dmgs = functionsManager?.GetUnlockedDamageFunctions();
+        if (trajs != null && selectedTraj >= 0 && selectedTraj < trajs.Count)
+        {
+            var fn = trajs[selectedTraj].FunctionDefinition as Delegate;
+            try { y = (float)fn.DynamicInvoke(x * 0.01f); } catch { y = 0f; }
+        }
+        if (dmgs != null && selectedDmg >= 0 && selectedDmg < dmgs.Count)
+        {
+            var fn = dmgs[selectedDmg].FunctionDefinition as Delegate;
+            try { dmg = (float)fn.DynamicInvoke(x * 0.01f); } catch { dmg = 0f; }
+        }
 
         if (tooltip != null)
         {
-            tooltip.Text = $"dist={distance:F1} y={y:F2} dmg={dmg:F2}";
+            tooltip.Text = $"x={x:F2} y={y:F2} dmg={dmg:F2}";
             tooltip.Visible = true;
-            // position near mouse
             var tipSize = tooltip.Size;
-            var mouse = GetGlobalMousePosition();
             tooltip.GlobalPosition = mouse + new Vector2(12f, -tipSize.Y - 8f);
         }
     }
