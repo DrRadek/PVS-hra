@@ -150,7 +150,7 @@ public partial class PauseMenu : Control
             r.Color = new Color(1, 1, 1, 0.6f);
             r.Size = new Vector2(16, 16);
             r.AnchorLeft = 0.5f; r.AnchorTop = 0.5f; r.AnchorRight = 0.5f; r.AnchorBottom = 0.5f;
-            r.Position = new Vector2(-8, -8);
+            r.Position = new Vector2(-16, -16);
             s.AddChild(r);
 
             var lbl = new Label();
@@ -158,7 +158,7 @@ public partial class PauseMenu : Control
             lbl.Text = (i + 1).ToString();
             lbl.AddThemeColorOverride("font_color", new Color(0,0,0,1));
             lbl.AnchorLeft = 0.5f; lbl.AnchorTop = 0.5f; lbl.AnchorRight = 0.5f; lbl.AnchorBottom = 0.5f;
-            lbl.Position = new Vector2(-6, -8);
+            lbl.Position = new Vector2(-12, -20);
             s.AddChild(lbl);
 
             selectors.Add(s);
