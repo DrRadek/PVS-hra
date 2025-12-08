@@ -12,10 +12,15 @@ public partial class PauseMenu : Control
     private ColorRect selectorRect;
     private Label tooltip;
 
+    // multi-selector support
+    private List<Control> selectors = new();
+    private List<ColorRect> selectorRects = new();
+    private int activeSelector = 0; // which attack slot is being edited
+
     private FunctionsManager functionsManager;
 
-    private int selectedTraj = -1;
-    private int selectedDmg = -1;
+    private int[] selectedTraj = null;
+    private int[] selectedDmg = null;
 
     private Vector2 selectorOffset = Vector2.Zero;
     private bool dragging = false;
@@ -77,22 +82,32 @@ public partial class PauseMenu : Control
             functionsManager = GetTree().GetRoot().FindChild("FunctionsManager", true, false) as FunctionsManager;
         }
 
+        // initialize per-attack selections after we know attack count
+        int atkCount = functionsManager != null ? functionsManager.GetAttackCount() : 0;
+        if (atkCount <= 0) atkCount = 1; // fallback to single selector
+        selectedTraj = new int[atkCount];
+        selectedDmg = new int[atkCount];
+        for (int i = 0; i < atkCount; i++) { selectedTraj[i] = -1; selectedDmg[i] = -1; }
+
+        CreateSelectors(atkCount);
+
         PopulateLists();
 
         if (trajList != null)
-            trajList.ItemSelected += OnTrajSelected;
+            trajList.Connect("item_selected", new Callable(this, nameof(OnTrajSelected)));
         if (dmgList != null)
-            dmgList.ItemSelected += OnDmgSelected;
+            dmgList.Connect("item_selected", new Callable(this, nameof(OnDmgSelected)));
 
-        if (selector != null)
-            selector.MouseFilter = MouseFilterEnum.Stop;
+        // set mouse filter on all selectors
+        foreach (var sel in selectors)
+            sel.MouseFilter = MouseFilterEnum.Stop;
         // ensure we receive input and processing
         SetProcess(true);
         SetProcessInput(true);
 
         // connect GUI input on selector for reliable dragging
-        if (selector != null)
-            selector.Connect("gui_input", new Callable(this, nameof(OnSelectorGuiInput)));
+        foreach (var sel in selectors)
+            sel.Connect("gui_input", new Callable(this, nameof(OnSelectorGuiInput)));
 
         // apply preview scale to ship and rendering
         if (shipSprite != null)
@@ -107,6 +122,62 @@ public partial class PauseMenu : Control
 
         // diagnostic: report what nodes were found at startup
         GD.Print($"PauseMenu: trajList={(trajList!=null)} dmgList={(dmgList!=null)} shipPreview={(shipPreview!=null)} shipSprite={(shipSprite!=null)} selector={(selector!=null)} selectorRect={(selectorRect!=null)} tooltip={(tooltip!=null)} functionsManager={(functionsManager!=null)}");
+    }
+
+    private void CreateSelectors(int count)
+    {
+        // free old selector nodes (if any)
+        foreach (var old in selectors)
+        {
+            if (old != null && old.IsInsideTree())
+                old.QueueFree();
+        }
+        selectors.Clear();
+        selectorRects.Clear();
+
+        Node parent = shipPreview != null ? (Node)shipPreview : GetTree().GetRoot();
+
+        for (int i = 0; i < count; i++)
+        {
+            var s = new Control();
+            s.Name = $"Selector_{i}";
+            s.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.CenterTop);
+            s.Size = new Vector2(16, 16);
+            parent.AddChild(s);
+
+            var r = new ColorRect();
+            r.Name = "SelectorRect";
+            r.Color = new Color(1, 1, 1, 0.6f);
+            r.Size = new Vector2(16, 16);
+            r.AnchorLeft = 0.5f; r.AnchorTop = 0.5f; r.AnchorRight = 0.5f; r.AnchorBottom = 0.5f;
+            r.Position = new Vector2(-8, -8);
+            s.AddChild(r);
+
+            var lbl = new Label();
+            lbl.Name = "IndexLabel";
+            lbl.Text = (i + 1).ToString();
+            lbl.AddThemeColorOverride("font_color", new Color(0,0,0,1));
+            lbl.AnchorLeft = 0.5f; lbl.AnchorTop = 0.5f; lbl.AnchorRight = 0.5f; lbl.AnchorBottom = 0.5f;
+            lbl.Position = new Vector2(-6, -8);
+            s.AddChild(lbl);
+
+            selectors.Add(s);
+            selectorRects.Add(r);
+            GD.Print($"PauseMenu: created selector[{i}] name={s.Name} parent={(parent!=null?parent.Name:"null")} rect={(r!=null)}");
+        }
+
+        // set initial active selector
+        activeSelector = 0;
+
+        // hide original template selector so it doesn't overlap
+        if (selector != null && selector.IsInsideTree())
+        {
+            selector.Visible = false;
+        }
+        if (selectorRect != null && selectorRect.IsInsideTree())
+        {
+            selectorRect.Visible = false;
+        }
     }
 
     private void DeferredApplyMinSize()
@@ -126,9 +197,21 @@ public partial class PauseMenu : Control
         var previewSize = shipPreview.Size;
         shipSprite.GlobalPosition = previewGlobal + previewSize / 2f;
 
-        // place selector to the right of ship center
-        if (selector != null)
-            selector.GlobalPosition = shipSprite.GlobalPosition + new Vector2(60f * previewScale, 0f);
+        // place selectors to the right of ship center in a small arc
+        if (selectors != null && selectors.Count > 0)
+        {
+            int count = selectors.Count;
+            for (int i = 0; i < count; i++)
+            {
+                var s = selectors[i];
+                if (s == null) continue;
+                float angleOffset = 0f;
+                if (count > 1)
+                    angleOffset = Mathf.Lerp(-0.25f, 0.25f, (float)i / (count - 1));
+                var offset = new Vector2(60f * previewScale, 0f).Rotated(angleOffset);
+                s.GlobalPosition = shipSprite.GlobalPosition + offset;
+            }
+        }
 
         UpdateSelectorVisuals();
     }
@@ -157,10 +240,10 @@ public partial class PauseMenu : Control
                 var desc = trajs[i].Description ?? $"Trajectory {i+1}";
                 if (trajList != null) trajList.AddItem(desc);
             }
-                if (trajs.Count > 0 && selectedTraj < 0)
+                if (trajs.Count > 0)
                 {
-                    selectedTraj = 0;
-                    if (trajList != null) trajList.Select(0);
+                    for (int a = 0; a < selectedTraj.Length; a++) if (selectedTraj[a] < 0) selectedTraj[a] = 0;
+                    if (trajList != null) trajList.Select(selectedTraj[activeSelector]);
                 }
         }
         else
@@ -175,15 +258,24 @@ public partial class PauseMenu : Control
                 var desc = dmgs[i].Description ?? $"Damage {i+1}";
                 if (dmgList != null) dmgList.AddItem(desc);
             }
-                if (dmgs.Count > 0 && selectedDmg < 0)
+                if (dmgs.Count > 0)
                 {
-                    selectedDmg = 0;
-                    if (dmgList != null) dmgList.Select(0);
+                    for (int a = 0; a < selectedDmg.Length; a++) if (selectedDmg[a] < 0) selectedDmg[a] = 0;
+                    if (dmgList != null) dmgList.Select(selectedDmg[activeSelector]);
                 }
         }
         else
         {
                 if (dmgList != null) dmgList.AddItem("No damage functions");
+        }
+
+        // debug: print selector info
+        GD.Print($"PauseMenu: selectors.Count={selectors.Count} activeSelector={activeSelector}");
+        for (int i = 0; i < selectors.Count; i++)
+        {
+            var s = selectors[i];
+            if (s != null)
+            GD.Print($"PauseMenu: selector[{i}] globalPos={s.GlobalPosition} parent={s.GetParent()?.Name}");
         }
 
         UpdateSelectorVisuals();
@@ -193,34 +285,44 @@ public partial class PauseMenu : Control
 
     // reflection helper removed; using public getters on FunctionsManager now
 
-    private void OnTrajSelected(long idx)
+    private void OnTrajSelected(int idx)
     {
-        GD.Print(idx);
-        selectedTraj = (int)idx;
+        if (selectedTraj == null) return;
+        if (activeSelector < 0 || activeSelector >= selectedTraj.Length) return;
+        selectedTraj[activeSelector] = idx;
         UpdateSelectorVisuals();
-        ApplySelectionsToAttack();
+        ApplySelectionsToAttack(activeSelector);
     }
 
-    private void OnDmgSelected(long idx)
+    private void OnDmgSelected(int idx)
     {
-        selectedDmg = (int)idx;
+        if (selectedDmg == null) return;
+        if (activeSelector < 0 || activeSelector >= selectedDmg.Length) return;
+        selectedDmg[activeSelector] = idx;
         UpdateSelectorVisuals();
-        ApplySelectionsToAttack();
+        ApplySelectionsToAttack(activeSelector);
     }
 
     public override void _Input(InputEvent @event)
     {
-        if (selector == null || shipPreview == null) return;
+        if (selectors.Count == 0 || shipPreview == null) return;
 
         if (@event is InputEventMouseButton mb && mb.ButtonIndex == MouseButton.Left)
         {
             if (mb.Pressed)
             {
-                // start dragging if click is near selector
-                if (selector != null && shipPreview != null && GetGlobalMousePosition().DistanceTo(selector.GlobalPosition) <= 24f)
+                // start dragging if click is near any selector; set activeSelector accordingly
+                for (int i = 0; i < selectors.Count; i++)
                 {
-                    dragging = true;
-                    if (shipPreview != null) selectorOffset = selector.Position - shipPreview.GetLocalMousePosition();
+                    var s = selectors[i];
+                    if (s != null && GetGlobalMousePosition().DistanceTo(s.GlobalPosition) <= 12f)
+                    {
+                        SetActiveSelector(i);
+                        dragging = true;
+                        // correct for selector origin being centered
+                        selectorOffset = s.Position - shipPreview.GetLocalMousePosition() + new Vector2(8,8);
+                        break;
+                    }
                 }
             }
             else
@@ -228,12 +330,13 @@ public partial class PauseMenu : Control
                 dragging = false;
             }
         }
-        else if (@event is InputEventMouseMotion mm && dragging)
+            else if (@event is InputEventMouseMotion mm && dragging)
         {
-            if (shipPreview != null)
+            if (shipPreview != null && activeSelector >= 0 && activeSelector < selectors.Count)
             {
                 var local = shipPreview.GetLocalMousePosition() + selectorOffset;
-                if (selector != null) selector.Position = local;
+                var s = selectors[activeSelector];
+                if (s != null) s.Position = local;
             }
             UpdateSelectorVisuals();
         }
@@ -245,8 +348,19 @@ public partial class PauseMenu : Control
         {
                 if (mb.Pressed)
                 {
-                    dragging = true;
-                    if (selector != null && shipPreview != null) selectorOffset = selector.Position - shipPreview.GetLocalMousePosition();
+                    // find which selector received the input
+                    for (int i = 0; i < selectors.Count; i++)
+                    {
+                        if (selectors[i] == null) continue;
+                        // compare mouse to selector global position
+                        if (GetGlobalMousePosition().DistanceTo(selectors[i].GlobalPosition) <= 12f)
+                        {
+                            SetActiveSelector(i);
+                            dragging = true;
+                            selectorOffset = selectors[i].Position - shipPreview.GetLocalMousePosition() + new Vector2(8,8);
+                            break;
+                        }
+                    }
                 }
             else
             {
@@ -255,19 +369,41 @@ public partial class PauseMenu : Control
         }
     }
 
+    private void SetActiveSelector(int newIdx)
+    {
+        if (newIdx < 0 || newIdx >= selectors.Count) return;
+        activeSelector = newIdx;
+        UpdateSelectorVisuals();
+        // update lists to match this selector's saved selection
+        if (trajList != null && selectedTraj != null && activeSelector < selectedTraj.Length)
+        {
+            int val = selectedTraj[activeSelector];
+            if (val >= 0) trajList.Select(val); else trajList.DeselectAll();
+        }
+        if (dmgList != null && selectedDmg != null && activeSelector < selectedDmg.Length)
+        {
+            int val = selectedDmg[activeSelector];
+            if (val >= 0) dmgList.Select(val); else dmgList.DeselectAll();
+        }
+    }
+
     private void UpdateSelectorVisuals()
     {
-        // update selector color depending on selection
-        if (selectorRect != null)
+        // update selector colors: active selector green, others white
+        for (int i = 0; i < selectors.Count; i++)
         {
-            if (selectedTraj >= 0 && selectedDmg >= 0)
-                selectorRect.Color = new Color(1, 1, 1, 0.8f);
-            else if (selectedTraj >= 0)
-                selectorRect.Color = new Color(1, 1, 1, 0.6f);
-            else if (selectedDmg >= 0)
-                selectorRect.Color = new Color(1, 1, 1, 0.6f);
+            var rect = (i < selectorRects.Count) ? selectorRects[i] : null;
+            if (rect == null) continue;
+            bool hasTraj = (selectedTraj != null && selectedTraj.Length > i && selectedTraj[i] >= 0);
+            bool hasDmg = (selectedDmg != null && selectedDmg.Length > i && selectedDmg[i] >= 0);
+            if (i == activeSelector)
+            {
+                rect.Color = new Color(0, 1, 0, (hasTraj && hasDmg) ? 0.9f : 0.8f);
+            }
             else
-                selectorRect.Color = new Color(1, 1, 1, 0.4f);
+            {
+                rect.Color = new Color(1, 1, 1, (hasTraj && hasDmg) ? 0.9f : 0.6f);
+            }
         }
 
         QueueRedraw();
@@ -277,10 +413,9 @@ public partial class PauseMenu : Control
     {
         base._Draw();
 
-        if (shipSprite == null || selector == null) return;
+        if (shipSprite == null || selectors == null || selectors.Count == 0) return;
 
         // draw functions lines from center (use ship sprite position)
-        if (shipSprite == null) return;
 
         Vector2 centerGlobal = shipSprite.GlobalPosition;
         Vector2 centerLocal = centerGlobal - this.GlobalPosition;
@@ -290,21 +425,32 @@ public partial class PauseMenu : Control
         var trajs = functionsManager.GetUnlockedTrajectoryFunctions();
         var dmgs = functionsManager.GetUnlockedDamageFunctions();
 
-        // draw selected functions with higher alpha
-        // prepare drawn samples and render both functions together so we can normalize damage
-        Func<float, float> trajFn = null;
-        Func<float, float> dmgFn = null;
+        // draw previews for all attack slots; highlight active slot
+        int atkCount = functionsManager != null ? functionsManager.GetAttackCount() : 1;
+        for (int slot = 0; slot < Math.Max(1, atkCount); slot++)
+        {
+            Func<float, float> trajFnSlot = null;
+            Func<float, float> dmgFnSlot = null;
+            if (selectedTraj != null && slot >= 0 && slot < selectedTraj.Length)
+            {
+                int t = selectedTraj[slot];
+                if (t >= 0 && trajs != null && t < trajs.Count)
+                    trajFnSlot = (x) => (float)trajs[t].FunctionDefinition.DynamicInvoke(x);
+            }
+            if (selectedDmg != null && slot >= 0 && slot < selectedDmg.Length)
+            {
+                int d = selectedDmg[slot];
+                if (d >= 0 && dmgs != null && d < dmgs.Count)
+                    dmgFnSlot = (x) => (float)dmgs[d].FunctionDefinition.DynamicInvoke(x);
+            }
 
-        if (selectedTraj >= 0 && trajs != null && selectedTraj < trajs.Count)
-            trajFn = (x) => (float)trajs[selectedTraj].FunctionDefinition.DynamicInvoke(x);
-
-        if (selectedDmg >= 0 && dmgs != null && selectedDmg < dmgs.Count)
-            dmgFn = (x) => (float)dmgs[selectedDmg].FunctionDefinition.DynamicInvoke(x);
-
-        if (trajFn != null || dmgFn != null)
-            DrawFunctionsPreview(trajFn, dmgFn, centerLocal);
+            var selNode = (slot >= 0 && slot < selectors.Count) ? selectors[slot] : null;
+            bool isActive = (slot == activeSelector);
+            if (trajFnSlot != null || dmgFnSlot != null)
+                DrawFunctionsPreview(trajFnSlot, dmgFnSlot, centerLocal, selNode, slot, isActive);
+        }
     }
-    private void DrawFunctionsPreview(Func<float, float> trajFn, Func<float, float> dmgFn, Vector2 centerLocal)
+    private void DrawFunctionsPreview(Func<float, float> trajFn, Func<float, float> dmgFn, Vector2 centerLocal, Control selNode, int slotIndex, bool isActive)
     {
         int samples = 120;
         float step = 10f; // pixels per sample before scaling
@@ -356,18 +502,21 @@ public partial class PauseMenu : Control
             }
         }
 
-        // rotate by selector angle
-        if (selector == null || shipSprite == null) return; 
-        float angle = (selector.GlobalPosition - shipSprite.GlobalPosition).Angle();
+        // rotate by selector angle (slot-specific)
+        if (selNode == null || shipSprite == null) return; 
+        float angle = (selNode.GlobalPosition - shipSprite.GlobalPosition).Angle();
         var rot = new Transform2D(angle, Vector2.Zero);
 
-        // prepare cached global points and values for hover detection
-        lastTrajGlobalPoints = new Vector2[samples];
-        lastDmgGlobalPoints = new Vector2[samples];
-        lastSampleDistances = new float[samples];
-        lastTrajValues = new float[samples];
-        lastDmgValues = new float[samples];
-        lastRawDmgValues = new float[samples];
+        // prepare cached global points and values for hover detection only if this slot is active
+        if (isActive)
+        {
+            lastTrajGlobalPoints = new Vector2[samples];
+            lastDmgGlobalPoints = new Vector2[samples];
+            lastSampleDistances = new float[samples];
+            lastTrajValues = new float[samples];
+            lastDmgValues = new float[samples];
+            lastRawDmgValues = new float[samples];
+        }
 
         for (int i = 1; i < samples; i++)
         {
@@ -375,20 +524,31 @@ public partial class PauseMenu : Control
             {
                 Vector2 p1 = rot.BasisXform(trajPoints[i - 1]) + centerLocal;
                 Vector2 p2 = rot.BasisXform(trajPoints[i]) + centerLocal;
-                DrawLine(p1, p2, new Color(1,1,1, selectedTraj >= 0 ? 0.9f : 0.4f), 2);
-                lastTrajGlobalPoints[i] = p2;
-                lastTrajValues[i] = -trajPoints[i].Y / (100f * renderScale);
-                lastSampleDistances[i] = (rot.BasisXform(trajPoints[i]).X);
+                // highlight based on whether this slot has a trajectory selected and whether it is active
+                bool hasTraj = (selectedTraj != null && slotIndex >= 0 && slotIndex < selectedTraj.Length && selectedTraj[slotIndex] >= 0);
+                float alpha = isActive ? 0.9f : (hasTraj ? 0.8f : 0.4f);
+                DrawLine(p1, p2, new Color(1,1,1, alpha), 2);
+                if (isActive)
+                {
+                    lastTrajGlobalPoints[i] = p2;
+                    lastTrajValues[i] = -trajPoints[i].Y / (100f * renderScale);
+                    lastSampleDistances[i] = (rot.BasisXform(trajPoints[i]).X);
+                }
             }
             if (dmgFn != null)
             {
                 Vector2 p1 = rot.BasisXform(dmgPoints[i - 1]) + centerLocal;
                 Vector2 p2 = rot.BasisXform(dmgPoints[i]) + centerLocal;
-                DrawLine(p1, p2, new Color(1,0,0, selectedDmg >= 0 ? 0.9f : 0.4f), 2);
-                lastDmgGlobalPoints[i] = p2;
-                lastDmgValues[i] = -dmgPoints[i].Y / (100f * renderScale);
-                // raw damage before normalization
-                lastRawDmgValues[i] = (dmgFn != null) ? dmgFn(i * step * 0.01f) : 0f;
+                bool hasDmg = (selectedDmg != null && slotIndex >= 0 && slotIndex < selectedDmg.Length && selectedDmg[slotIndex] >= 0);
+                float alphaD = isActive ? 0.9f : (hasDmg ? 0.8f : 0.4f);
+                DrawLine(p1, p2, new Color(1,0,0, alphaD), 2);
+                if (isActive)
+                {
+                    lastDmgGlobalPoints[i] = p2;
+                    lastDmgValues[i] = -dmgPoints[i].Y / (100f * renderScale);
+                    // raw damage before normalization
+                    lastRawDmgValues[i] = (dmgFn != null) ? dmgFn(i * step * 0.01f) : 0f;
+                }
             }
         }
     }
@@ -405,15 +565,39 @@ public partial class PauseMenu : Control
             {
                 functionsManager = playerNode.GetNodeOrNull<FunctionsManager>("Scripts/FunctionsManager");
                 if (functionsManager != null)
+                {
+                    // ensure selectors and per-attack selection arrays match the attack count
+                    int atkCount = functionsManager.GetAttackCount();
+                    if (atkCount <= 0) atkCount = 1;
+                    // only recreate if mismatch to avoid flicker
+                    if (selectedTraj == null || selectedTraj.Length != atkCount)
+                    {
+                        selectedTraj = new int[atkCount];
+                        selectedDmg = new int[atkCount];
+                        for (int i = 0; i < atkCount; i++) { selectedTraj[i] = -1; selectedDmg[i] = -1; }
+                        GD.Print($"PauseMenu: detected attack count={atkCount}, creating selectors");
+                        CreateSelectors(atkCount);
+                        GD.Print($"PauseMenu: created {selectors.Count} selectors");
+                        // position and wire newly created selectors after layout
+                        CallDeferred(nameof(DeferredPositionShipAndSelector));
+                        foreach (var s in selectors)
+                        {
+                            if (s == null) continue;
+                            s.MouseFilter = MouseFilterEnum.Stop;
+                            s.Connect("gui_input", new Callable(this, nameof(OnSelectorGuiInput)));
+                        }
+                    }
                     PopulateLists();
+                }
             }
         }
 
         // update dragging during process (reliable even if _Input isn't firing)
-        if (dragging && shipPreview != null && selector != null)
+        if (dragging && shipPreview != null && activeSelector >= 0 && activeSelector < selectors.Count)
         {
             var local = shipPreview.GetLocalMousePosition() + selectorOffset;
-            if (selector != null) selector.Position = local;
+            var s = selectors[activeSelector];
+            if (s != null) s.Position = local - new Vector2(8,8);
             UpdateSelectorVisuals();
             // show tooltip at selector while dragging
             ShowTooltipForSelection();
@@ -453,9 +637,10 @@ public partial class PauseMenu : Control
         }
 
         // If mouse is near the selector, show selector tooltip (priority)
-        if (selector != null && mouse.DistanceTo(selector.GlobalPosition) <= 24f)
+        var activeSelNode = (activeSelector >= 0 && activeSelector < selectors.Count) ? selectors[activeSelector] : null;
+        if (activeSelNode != null && mouse.DistanceTo(activeSelNode.GlobalPosition) <= 24f)
         {
-            ShowTooltipAt(mouse);
+            ShowTooltipForSelection();
         }
         else if (bestIdx >= 0 && bestDist <= 16f)
         {
@@ -484,20 +669,24 @@ public partial class PauseMenu : Control
         float y = 0f;
         float dmg = 0f;
 
-        if (trajs != null && selectedTraj >= 0 && selectedTraj < trajs.Count)
+        if (trajs != null && selectedTraj != null && activeSelector >= 0 && activeSelector < selectedTraj.Length && selectedTraj[activeSelector] >= 0 && selectedTraj[activeSelector] < trajs.Count)
         {
-            var fn = trajs[selectedTraj].FunctionDefinition as Delegate;
+            var fn = trajs[selectedTraj[activeSelector]].FunctionDefinition as Delegate;
             try { y = (float)fn.DynamicInvoke(x * 0.01f); } catch { y = 0f; }
         }
 
-        if (dmgs != null && selectedDmg >= 0 && selectedDmg < dmgs.Count)
+        if (dmgs != null && selectedDmg != null && activeSelector >= 0 && activeSelector < selectedDmg.Length && selectedDmg[activeSelector] >= 0 && selectedDmg[activeSelector] < dmgs.Count)
         {
-            var fn = dmgs[selectedDmg].FunctionDefinition as Delegate;
+            var fn = dmgs[selectedDmg[activeSelector]].FunctionDefinition as Delegate;
             try { dmg = (float)fn.DynamicInvoke(x * 0.01f); } catch { dmg = 0f; }
         }
 
-        string trajDesc = (trajs != null && selectedTraj >= 0 && selectedTraj < trajs.Count) ? trajs[selectedTraj].Description : "-";
-        string dmgDesc = (dmgs != null && selectedDmg >= 0 && selectedDmg < dmgs.Count) ? dmgs[selectedDmg].Description : "-";
+        string trajDesc = "-";
+        string dmgDesc = "-";
+        if (trajs != null && selectedTraj != null && activeSelector >= 0 && activeSelector < selectedTraj.Length && selectedTraj[activeSelector] >= 0 && selectedTraj[activeSelector] < trajs.Count)
+            trajDesc = trajs[selectedTraj[activeSelector]].Description;
+        if (dmgs != null && selectedDmg != null && activeSelector >= 0 && activeSelector < selectedDmg.Length && selectedDmg[activeSelector] >= 0 && selectedDmg[activeSelector] < dmgs.Count)
+            dmgDesc = dmgs[selectedDmg[activeSelector]].Description;
 
         tooltip.Text = $"x={x:F2} y={y:F2} dmg={dmg:F2}\ntraj: {trajDesc}\ndmg: {dmgDesc}";
         tooltip.Visible = true;
@@ -509,9 +698,10 @@ public partial class PauseMenu : Control
     private Vector2 GetFireDirection()
     {
         if (shipSprite == null) return Vector2.Right;
-        if (selector != null)
+        var sel = (activeSelector >= 0 && activeSelector < selectors.Count) ? selectors[activeSelector] : null;
+        if (sel != null)
         {
-            Vector2 v = selector.GlobalPosition - shipSprite.GlobalPosition;
+            Vector2 v = sel.GlobalPosition - shipSprite.GlobalPosition;
             if (v.Length() > 0.0001f) return v.Normalized();
         }
         return Vector2.Right;
@@ -519,12 +709,13 @@ public partial class PauseMenu : Control
 
     private void ShowTooltipForSelection()
     {
-        if (functionsManager == null || tooltip == null || shipSprite == null || selector == null) return;
+        if (functionsManager == null || tooltip == null || shipSprite == null) return;
 
         var trajs = functionsManager.GetUnlockedTrajectoryFunctions();
         var dmgs = functionsManager.GetUnlockedDamageFunctions();
 
-        if (selector == null || shipSprite == null) return;
+        var sel = (activeSelector >= 0 && activeSelector < selectors.Count) ? selectors[activeSelector] : null;
+        if (sel == null || shipSprite == null) return;
         // use mouse position projected onto firing axis so tooltip follows the mouse inside the selector square
         Vector2 mouse = GetGlobalMousePosition();
         Vector2 center = shipSprite.GlobalPosition;
@@ -533,27 +724,31 @@ public partial class PauseMenu : Control
         float y = 0f;
         float dmg = 0f;
 
-        if (trajs != null && selectedTraj >= 0 && selectedTraj < trajs.Count)
+        if (trajs != null && selectedTraj != null && activeSelector >= 0 && activeSelector < selectedTraj.Length && selectedTraj[activeSelector] >= 0 && selectedTraj[activeSelector] < trajs.Count)
         {
-            var fn = trajs[selectedTraj].FunctionDefinition as Delegate;
+            var fn = trajs[selectedTraj[activeSelector]].FunctionDefinition as Delegate;
             try { y = (float)fn.DynamicInvoke(x * 0.01f); } catch { y = 0f; }
         }
 
-        if (dmgs != null && selectedDmg >= 0 && selectedDmg < dmgs.Count)
+        if (dmgs != null && selectedDmg != null && activeSelector >= 0 && activeSelector < selectedDmg.Length && selectedDmg[activeSelector] >= 0 && selectedDmg[activeSelector] < dmgs.Count)
         {
-            var fn = dmgs[selectedDmg].FunctionDefinition as Delegate;
+            var fn = dmgs[selectedDmg[activeSelector]].FunctionDefinition as Delegate;
             try { dmg = (float)fn.DynamicInvoke(x * 0.01f); } catch { dmg = 0f; }
         }
 
         if (tooltip != null)
         {
-            string trajDesc = (trajs != null && selectedTraj >= 0 && selectedTraj < trajs.Count) ? trajs[selectedTraj].Description : "-";
-            string dmgDesc = (dmgs != null && selectedDmg >= 0 && selectedDmg < dmgs.Count) ? dmgs[selectedDmg].Description : "-";
+            string trajDesc = "-";
+            string dmgDesc = "-";
+            if (trajs != null && selectedTraj != null && activeSelector >= 0 && activeSelector < selectedTraj.Length && selectedTraj[activeSelector] >= 0 && selectedTraj[activeSelector] < trajs.Count)
+                trajDesc = trajs[selectedTraj[activeSelector]].Description;
+            if (dmgs != null && selectedDmg != null && activeSelector >= 0 && activeSelector < selectedDmg.Length && selectedDmg[activeSelector] >= 0 && selectedDmg[activeSelector] < dmgs.Count)
+                dmgDesc = dmgs[selectedDmg[activeSelector]].Description;
             tooltip.Text = $"x={x:F2} y={y:F2} dmg={dmg:F2}\ntraj: {trajDesc}\ndmg: {dmgDesc}";
             tooltip.Visible = true;
-            // position tooltip to the right and slightly above selector, using Size
+            // position tooltip to the right and slightly above active selector, using Size
             var tipSize = tooltip.Size;
-            var target = selector.GlobalPosition + new Vector2(16f, -tipSize.Y - 8f);
+            var target = sel.GlobalPosition + new Vector2(16f, -tipSize.Y - 8f);
             tooltip.GlobalPosition = target;
         }
     }
@@ -570,14 +765,14 @@ public partial class PauseMenu : Control
         float y = 0f; float dmg = 0f;
         var trajs = functionsManager?.GetUnlockedTrajectoryFunctions();
         var dmgs = functionsManager?.GetUnlockedDamageFunctions();
-        if (trajs != null && selectedTraj >= 0 && selectedTraj < trajs.Count)
+        if (trajs != null && selectedTraj != null && activeSelector >= 0 && activeSelector < selectedTraj.Length && selectedTraj[activeSelector] >= 0 && selectedTraj[activeSelector] < trajs.Count)
         {
-            var fn = trajs[selectedTraj].FunctionDefinition as Delegate;
+            var fn = trajs[selectedTraj[activeSelector]].FunctionDefinition as Delegate;
             try { y = (float)fn.DynamicInvoke(x * 0.01f); } catch { y = 0f; }
         }
-        if (dmgs != null && selectedDmg >= 0 && selectedDmg < dmgs.Count)
+        if (dmgs != null && selectedDmg != null && activeSelector >= 0 && activeSelector < selectedDmg.Length && selectedDmg[activeSelector] >= 0 && selectedDmg[activeSelector] < dmgs.Count)
         {
-            var fn = dmgs[selectedDmg].FunctionDefinition as Delegate;
+            var fn = dmgs[selectedDmg[activeSelector]].FunctionDefinition as Delegate;
             try { dmg = (float)fn.DynamicInvoke(x * 0.01f); } catch { dmg = 0f; }
         }
 
@@ -593,12 +788,22 @@ public partial class PauseMenu : Control
     private void ApplySelectionsToAttack()
     {
         if (functionsManager == null) return;
+        ApplySelectionsToAttack(activeSelector);
+    }
+
+    private void ApplySelectionsToAttack(int attackIndex)
+    {
+        if (functionsManager == null) return;
         var trajs = functionsManager.GetUnlockedTrajectoryFunctions();
         var dmgs = functionsManager.GetUnlockedDamageFunctions();
         if (trajs == null || dmgs == null) return;
-        if (selectedTraj >= 0 && selectedTraj < trajs.Count && selectedDmg >= 0 && selectedDmg < dmgs.Count)
+        if (selectedTraj == null || selectedDmg == null) return;
+        if (attackIndex < 0 || attackIndex >= selectedTraj.Length) return;
+        int t = selectedTraj[attackIndex];
+        int d = selectedDmg[attackIndex];
+        if (t >= 0 && t < trajs.Count && d >= 0 && d < dmgs.Count)
         {
-            functionsManager.SetAttackFunctions(0, trajs[selectedTraj], dmgs[selectedDmg]);
+            functionsManager.SetAttackFunctions(attackIndex, trajs[t], dmgs[d]);
         }
     }
 }

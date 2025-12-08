@@ -126,6 +126,25 @@ public partial class FunctionsManager : Node
             atk.Disable();
     }
 
+    // expose number of attack slots
+    public int GetAttackCount()
+    {
+        return usedAttacks.Count;
+    }
+
+    // expose functions assigned to an attack slot
+    public TrajectoryFunction GetAttackTrajectory(int index)
+    {
+        if (index < 0 || index >= usedAttacks.Count) return null;
+        return usedAttacks[index].Trajectory;
+    }
+
+    public DamageFunction GetAttackDamage(int index)
+    {
+        if (index < 0 || index >= usedAttacks.Count) return null;
+        return usedAttacks[index].Damage;
+    }
+
     public class UpgradableFunction
     {
         protected int upgradeLevel = 1;
@@ -220,6 +239,10 @@ public partial class FunctionsManager : Node
             damageFn = dmg;
             this.rotationNode = rotationNode;
         }
+
+        // Expose assigned functions for UI inspection
+        public TrajectoryFunction Trajectory => trajectoryFn;
+        public DamageFunction Damage => damageFn;
 
         public void Enable()
         {
