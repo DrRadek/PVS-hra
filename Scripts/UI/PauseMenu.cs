@@ -105,9 +105,8 @@ public partial class PauseMenu : Control
         SetProcess(true);
         SetProcessInput(true);
 
-        // connect GUI input on selector for reliable dragging
-        foreach (var sel in selectors)
-            sel.Connect("gui_input", new Callable(this, nameof(OnSelectorGuiInput)));
+        // NOTE: we intentionally do not connect selector GUI input to avoid duplicate
+        // drag handling between `_Input` and `gui_input` which caused snapping.
 
         // apply preview scale to ship and rendering
         if (shipSprite != null)
@@ -190,6 +189,7 @@ public partial class PauseMenu : Control
 
     private void DeferredPositionShipAndSelector()
     {
+        if (dragging) return;
         if (shipPreview == null || shipSprite == null) return;
 
         // center ship inside preview (use global positions so drawing coordinates match)
@@ -269,6 +269,37 @@ public partial class PauseMenu : Control
                 if (dmgList != null) dmgList.AddItem("No damage functions");
         }
 
+        // initialize per-slot selections from functionsManager's current attacks
+        if (functionsManager != null)
+        {
+            int atkCount = functionsManager.GetAttackCount();
+            for (int slot = 0; slot < Math.Min(atkCount, selectedTraj.Length); slot++)
+            {
+                var atkTraj = functionsManager.GetAttackTrajectory(slot);
+                var atkDmg = functionsManager.GetAttackDamage(slot);
+                if (atkTraj != null && trajs != null)
+                {
+                    for (int j = 0; j < trajs.Count; j++)
+                    {
+                        if (trajs[j].Description == atkTraj.Description)
+                        {
+                            selectedTraj[slot] = j; break;
+                        }
+                    }
+                }
+                if (atkDmg != null && dmgs != null)
+                {
+                    for (int j = 0; j < dmgs.Count; j++)
+                    {
+                        if (dmgs[j].Description == atkDmg.Description)
+                        {
+                            selectedDmg[slot] = j; break;
+                        }
+                    }
+                }
+            }
+        }
+
         // debug: print selector info
         GD.Print($"PauseMenu: selectors.Count={selectors.Count} activeSelector={activeSelector}");
         for (int i = 0; i < selectors.Count; i++)
@@ -319,8 +350,8 @@ public partial class PauseMenu : Control
                     {
                         SetActiveSelector(i);
                         dragging = true;
-                        // correct for selector origin being centered
-                        selectorOffset = s.Position - shipPreview.GetLocalMousePosition() + new Vector2(8,8);
+                        // offset between selector top-left and mouse local position
+                        selectorOffset = s.Position - shipPreview.GetLocalMousePosition();
                         break;
                     }
                 }
@@ -329,16 +360,6 @@ public partial class PauseMenu : Control
             {
                 dragging = false;
             }
-        }
-            else if (@event is InputEventMouseMotion mm && dragging)
-        {
-            if (shipPreview != null && activeSelector >= 0 && activeSelector < selectors.Count)
-            {
-                var local = shipPreview.GetLocalMousePosition() + selectorOffset;
-                var s = selectors[activeSelector];
-                if (s != null) s.Position = local;
-            }
-            UpdateSelectorVisuals();
         }
     }
 
@@ -526,7 +547,7 @@ public partial class PauseMenu : Control
                 Vector2 p2 = rot.BasisXform(trajPoints[i]) + centerLocal;
                 // highlight based on whether this slot has a trajectory selected and whether it is active
                 bool hasTraj = (selectedTraj != null && slotIndex >= 0 && slotIndex < selectedTraj.Length && selectedTraj[slotIndex] >= 0);
-                float alpha = isActive ? 0.9f : (hasTraj ? 0.8f : 0.4f);
+                float alpha = isActive ? 1.0f : (hasTraj ? 0.75f : 0.35f);
                 DrawLine(p1, p2, new Color(1,1,1, alpha), 2);
                 if (isActive)
                 {
@@ -540,7 +561,7 @@ public partial class PauseMenu : Control
                 Vector2 p1 = rot.BasisXform(dmgPoints[i - 1]) + centerLocal;
                 Vector2 p2 = rot.BasisXform(dmgPoints[i]) + centerLocal;
                 bool hasDmg = (selectedDmg != null && slotIndex >= 0 && slotIndex < selectedDmg.Length && selectedDmg[slotIndex] >= 0);
-                float alphaD = isActive ? 0.9f : (hasDmg ? 0.8f : 0.4f);
+                float alphaD = isActive ? 1.0f : (hasDmg ? 0.75f : 0.35f);
                 DrawLine(p1, p2, new Color(1,0,0, alphaD), 2);
                 if (isActive)
                 {
@@ -584,7 +605,6 @@ public partial class PauseMenu : Control
                         {
                             if (s == null) continue;
                             s.MouseFilter = MouseFilterEnum.Stop;
-                            s.Connect("gui_input", new Callable(this, nameof(OnSelectorGuiInput)));
                         }
                     }
                     PopulateLists();
@@ -597,7 +617,7 @@ public partial class PauseMenu : Control
         {
             var local = shipPreview.GetLocalMousePosition() + selectorOffset;
             var s = selectors[activeSelector];
-            if (s != null) s.Position = local - new Vector2(8,8);
+            if (s != null) s.Position = local;
             UpdateSelectorVisuals();
             // show tooltip at selector while dragging
             ShowTooltipForSelection();
