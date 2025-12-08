@@ -151,7 +151,7 @@ offset_bottom = 20.0
 text = "level x (x xp)"
 label_settings = SubResource("LabelSettings_hptm8")
 
-[node name="Button" type="Button" parent="GameUI"]
+[node name="FunctionSelectionManagerButton" type="Button" parent="GameUI"]
 anchors_preset = 10
 anchor_right = 1.0
 offset_left = 566.0

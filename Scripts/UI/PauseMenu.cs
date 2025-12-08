@@ -13,6 +13,14 @@ public partial class PauseMenu : Control
     private ColorRect selectorRect;
     private Label tooltip;
 
+    // UI buttons for toggling modes and exiting/restarting
+    private Button toggleManageButton;
+    private Button exitButton;
+    private Button restartButton;
+    private Control backgroundNode;
+    private Node originalShipParent = null;
+    private bool manageFunctionsMode = true; // true = editing functions view, false = main menu view
+
     // multi-selector support
     private List<Control> selectors = new();
     private List<ColorRect> selectorRects = new();
@@ -83,6 +91,12 @@ public partial class PauseMenu : Control
             functionsManager = GetTree().GetRoot().FindChild("FunctionsManager", true, false) as FunctionsManager;
         }
 
+        // find background node and panels so we can show/hide them
+        backgroundNode = GetNodeOrNull<Control>("background") ?? FindChild("background", true, false) as Control;
+
+        // create or find the top toggle and bottom buttons
+        SetupControlButtons();
+
         // initialize per-attack selections after we know attack count
         int atkCount = functionsManager != null ? functionsManager.GetAttackCount() : 0;
         if (atkCount <= 0) atkCount = 1; // fallback to single selector
@@ -122,6 +136,151 @@ public partial class PauseMenu : Control
 
         // diagnostic: report what nodes were found at startup
         GD.Print($"PauseMenu: trajList={(trajList!=null)} dmgList={(dmgList!=null)} shipPreview={(shipPreview!=null)} shipSprite={(shipSprite!=null)} selector={(selector!=null)} selectorRect={(selectorRect!=null)} tooltip={(tooltip!=null)} functionsManager={(functionsManager!=null)}");
+    }
+
+    private void SetupControlButtons()
+    {
+        // try find existing buttons
+        toggleManageButton = GetNodeOrNull<Button>("TopToggle") ?? FindChild("TopToggle", true, false) as Button;
+        exitButton = GetNodeOrNull<Button>("BottomExit") ?? FindChild("BottomExit", true, false) as Button;
+        restartButton = GetNodeOrNull<Button>("BottomRestart") ?? FindChild("BottomRestart", true, false) as Button;
+
+        // create missing buttons as children of this PauseMenu
+        if (toggleManageButton == null)
+        {
+            toggleManageButton = new Button();
+            toggleManageButton.Name = "TopToggle";
+            toggleManageButton.Text = "Main Menu";
+            toggleManageButton.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopWide);
+            toggleManageButton.CustomMinimumSize = new Vector2(160, 28);
+            toggleManageButton.OffsetTop = 8;
+            AddChild(toggleManageButton);
+        }
+
+        if (exitButton == null)
+        {
+            exitButton = new Button();
+            exitButton.Name = "BottomExit";
+            exitButton.Text = "Exit";
+            exitButton.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.BottomLeft);
+            exitButton.CustomMinimumSize = new Vector2(120, 32);
+            exitButton.OffsetLeft = 8;
+            exitButton.OffsetBottom = 8;
+            AddChild(exitButton);
+        }
+
+        if (restartButton == null)
+        {
+            restartButton = new Button();
+            restartButton.Name = "BottomRestart";
+            restartButton.Text = "Restart";
+            restartButton.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.BottomRight);
+            restartButton.CustomMinimumSize = new Vector2(120, 32);
+            restartButton.OffsetRight = 8;
+            restartButton.OffsetBottom = 8;
+            AddChild(restartButton);
+        }
+
+        // connect signals (avoid duplicate connections)
+        if (!toggleManageButton.IsConnected("pressed", new Callable(this, nameof(OnToggleManagePressed))))
+            toggleManageButton.Connect("pressed", new Callable(this, nameof(OnToggleManagePressed)));
+        if (!exitButton.IsConnected("pressed", new Callable(this, nameof(OnExitPressed))))
+            exitButton.Connect("pressed", new Callable(this, nameof(OnExitPressed)));
+        if (!restartButton.IsConnected("pressed", new Callable(this, nameof(OnRestartPressed))))
+            restartButton.Connect("pressed", new Callable(this, nameof(OnRestartPressed)));
+
+        // default initial visibility
+        UpdateModeVisuals();
+    }
+
+    private void OnToggleManagePressed()
+    {
+        manageFunctionsMode = !manageFunctionsMode;
+        UpdateModeVisuals();
+    }
+
+    private void OnExitPressed()
+    {
+        // default behavior: quit the game. Projects can override by connecting their own handlers.
+        GetTree().Quit();
+    }
+
+    private void OnRestartPressed()
+    {
+        // try to reload current scene if available
+        try
+        {
+            GetTree().ReloadCurrentScene();
+        }
+        catch
+        {
+            // fallback: quit (during editor this may be preferable)
+            GetTree().Quit();
+        }
+    }
+
+    private void UpdateModeVisuals()
+    {
+        // If we don't have buttons, nothing to do
+        if (toggleManageButton == null) return;
+
+        // Update toggle button text to indicate the action (opposite of current mode)
+        toggleManageButton.Text = manageFunctionsMode ? "Main Menu" : "Manage Functions";
+
+        // When in manageFunctionsMode: show background/panels and hide exit/restart
+        if (manageFunctionsMode)
+        {
+            if (backgroundNode != null)
+                backgroundNode.Visible = true;
+            if (exitButton != null) exitButton.Visible = false;
+            if (restartButton != null) restartButton.Visible = false;
+
+            // if we previously reparented shipPreview, put it back under original parent
+            if (originalShipParent != null && shipPreview != null && shipPreview.GetParent() != originalShipParent)
+            {
+                var cur = shipPreview.GetParent();
+                cur?.RemoveChild(shipPreview);
+                originalShipParent.AddChild(shipPreview);
+                CallDeferred(nameof(DeferredPositionShipAndSelector));
+            }
+        }
+        else
+        {
+            // main menu mode: hide background but keep functions rendered by reparenting shipPreview to this node
+            if (backgroundNode != null)
+                backgroundNode.Visible = false;
+            if (exitButton != null) exitButton.Visible = true;
+            if (restartButton != null) restartButton.Visible = true;
+
+            if (shipPreview != null)
+            {
+                if (originalShipParent == null) originalShipParent = shipPreview.GetParent();
+                if (shipPreview.GetParent() != this)
+                {
+                    shipPreview.GetParent()?.RemoveChild(shipPreview);
+                    AddChild(shipPreview);
+                    CallDeferred(nameof(DeferredPositionShipAndSelector));
+                    // ensure UI buttons are on top so they remain clickable
+                    BringToFront(toggleManageButton);
+                    BringToFront(exitButton);
+                    BringToFront(restartButton);
+                }
+            }
+        }
+    }
+
+    // Move the control to the top of its parent's children so it receives input first
+    private void BringToFront(Control c)
+    {
+        if (c == null) return;
+        var p = c.GetParent();
+        if (p == null) return;
+        try
+        {
+            int childCount = p.GetChildCount();
+            p.MoveChild(c, childCount - 1);
+        }
+        catch { }
     }
 
     private void CreateSelectors(int count)
