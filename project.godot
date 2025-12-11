@@ -17,9 +17,9 @@ config/icon="res://icon.svg"
 
 [display]
 
-window/size/viewport_width=1920
-window/size/viewport_height=1080
+window/size/transparent=true
 window/stretch/mode="viewport"
+window/per_pixel_transparency/allowed=true
 
 [dotnet]
 
@@ -55,3 +55,7 @@ MoveRight={
 [physics]
 
 2d/default_gravity=0.0
+
+[rendering]
+
+viewport/transparent_background=true
