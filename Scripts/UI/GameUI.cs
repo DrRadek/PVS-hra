@@ -32,6 +32,7 @@ public partial class GameUI : Node
 
     public void UpdateHp(float hp, float maxHp)
     {
+        GD.Print("hp update");
         hpLabel.Text = $"hp {hp}/{maxHp}";
         hpProgressBar.MaxValue = maxHp;
         hpProgressBar.Value = hp;

@@ -1,15 +1,22 @@
-[gd_scene load_steps=23 format=3 uid="uid://bg4vt12bvfg0f"]
+[gd_scene load_steps=26 format=3 uid="uid://bg4vt12bvfg0f"]
 
 [ext_resource type="Script" uid="uid://dwbc86tta5cs3" path="res://Scripts/GameManager.cs" id="1_8gbba"]
 [ext_resource type="PackedScene" uid="uid://d1mseb2rcga46" path="res://Scenes/player.tscn" id="1_r150o"]
 [ext_resource type="PackedScene" uid="uid://b8vp0fwf6vtkx" path="res://Scenes/enemy.tscn" id="2_idj7w"]
-[ext_resource type="Texture2D" uid="uid://chacnm3nqt0sy" path="res://Assets/Background/pozadí 1 placeholder.bmp" id="4_jjvhh"]
-[ext_resource type="Texture2D" uid="uid://ch270vurbac4g" path="res://Assets/Background/střední pozadí 1 placeholder.bmp" id="5_kry3j"]
+[ext_resource type="Texture2D" uid="uid://cxayvvhakmsai" path="res://Assets/temp/blok.bmp" id="4_d1ilt"]
+[ext_resource type="Texture2D" uid="uid://emxyup4etlkt" path="res://Assets/Background/pozadí 1.bmp" id="4_hptm8"]
+[ext_resource type="Texture2D" uid="uid://bo4gutwle3onu" path="res://Assets/Background/střední pozadí.bmp" id="5_hptm8"]
 [ext_resource type="Script" uid="uid://4cpqp3133q7y" path="res://Scripts/Helpers/BackgroundMover.cs" id="6_21xkr"]
 [ext_resource type="Texture2D" uid="uid://7xn7dvo628j1" path="res://icon.svg" id="7_6bp64"]
 [ext_resource type="Script" uid="uid://c7scn8jlrlgml" path="res://Scripts/UI/GameUI.cs" id="8_344ge"]
 [ext_resource type="Script" uid="uid://dyl7hu2tslur8" path="res://Scripts/UI/PauseMenu.cs" id="9_pause"]
-[ext_resource type="Texture2D" uid="uid://b0mnpebvwineo" path="res://Assets/Player/lod1-4.bmp" id="10_lod14"]
+[ext_resource type="Texture2D" uid="uid://c8huqnsekrcsd" path="res://Assets/Player/lod1-4.bmp" id="10_lod14"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_d1ilt"]
+size = Vector2(9632, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6iyac"]
+size = Vector2(32, 9600)
 
 [sub_resource type="Gradient" id="Gradient_21xkr"]
 offsets = PackedFloat32Array(0)
@@ -69,10 +76,64 @@ PlayerScene = ExtResource("1_r150o")
 EnemyScene = ExtResource("2_idj7w")
 backgroundMover = NodePath("background/background/Control/StředníPozadí1Placeholder/Node")
 
+[node name="Pozadí1Placeholder" type="Sprite2D" parent="."]
+position = Vector2(0, 1)
+scale = Vector2(19, 19)
+texture = ExtResource("4_hptm8")
+
+[node name="Node2D" type="Node2D" parent="."]
+
+[node name="StaticBody2D" type="StaticBody2D" parent="Node2D"]
+position = Vector2(0, -4800)
+
+[node name="Blok" type="Sprite2D" parent="Node2D/StaticBody2D"]
+texture_repeat = 2
+texture = ExtResource("4_d1ilt")
+region_enabled = true
+region_rect = Rect2(0, 0, 9632, 32)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Node2D/StaticBody2D"]
+shape = SubResource("RectangleShape2D_d1ilt")
+
+[node name="StaticBody2D2" type="StaticBody2D" parent="Node2D"]
+position = Vector2(0, 4800)
+
+[node name="Blok" type="Sprite2D" parent="Node2D/StaticBody2D2"]
+texture_repeat = 2
+texture = ExtResource("4_d1ilt")
+region_enabled = true
+region_rect = Rect2(0, 0, 9632, 32)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Node2D/StaticBody2D2"]
+shape = SubResource("RectangleShape2D_d1ilt")
+
+[node name="StaticBody2D3" type="StaticBody2D" parent="Node2D"]
+position = Vector2(4800, 0)
+
+[node name="Blok" type="Sprite2D" parent="Node2D/StaticBody2D3"]
+texture_repeat = 2
+texture = ExtResource("4_d1ilt")
+region_enabled = true
+region_rect = Rect2(0, 0, 32, 9568)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Node2D/StaticBody2D3"]
+shape = SubResource("RectangleShape2D_6iyac")
+
+[node name="StaticBody2D4" type="StaticBody2D" parent="Node2D"]
+position = Vector2(-4800, 0)
+
+[node name="Blok" type="Sprite2D" parent="Node2D/StaticBody2D4"]
+texture_repeat = 2
+texture = ExtResource("4_d1ilt")
+region_enabled = true
+region_rect = Rect2(0, 0, 32, 9568)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Node2D/StaticBody2D4"]
+shape = SubResource("RectangleShape2D_6iyac")
+
 [node name="Background" type="Node2D" parent="."]
 
 [node name="background" type="CanvasLayer" parent="."]
-layer = -1
 
 [node name="background" type="Control" parent="background"]
 layout_mode = 3
@@ -89,6 +150,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="Control2" type="Control" parent="background/background"]
+visible = false
 z_index = -1
 z_as_relative = false
 layout_mode = 1
@@ -102,8 +164,8 @@ grow_vertical = 2
 
 [node name="Pozadí1Placeholder" type="Sprite2D" parent="background/background/Control2"]
 position = Vector2(0, 1)
-scale = Vector2(7.46, 7.46)
-texture = ExtResource("4_jjvhh")
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("4_hptm8")
 
 [node name="Control" type="Control" parent="background/background"]
 z_index = -1
@@ -118,8 +180,8 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="StředníPozadí1Placeholder" type="Sprite2D" parent="background/background/Control"]
-scale = Vector2(7.08, 7.08)
-texture = ExtResource("5_kry3j")
+scale = Vector2(10, 10)
+texture = ExtResource("5_hptm8")
 
 [node name="Node" type="Node" parent="background/background/Control/StředníPozadí1Placeholder" node_paths=PackedStringArray("backgroundNode")]
 script = ExtResource("6_21xkr")
@@ -153,6 +215,7 @@ text = "level x (x xp)"
 label_settings = SubResource("LabelSettings_hptm8")
 
 [node name="FunctionSelectionManagerButton" type="Button" parent="GameUI"]
+visible = false
 anchors_preset = 10
 anchor_right = 1.0
 offset_left = 566.0
@@ -322,3 +385,5 @@ anchor_left = 0.33
 anchor_right = 0.66
 offset_top = -20.0
 offset_bottom = -20.0
+
+[node name="Sprite2D" type="Sprite2D" parent="."]

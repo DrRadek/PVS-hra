@@ -4,17 +4,17 @@
 [ext_resource type="PackedScene" uid="uid://c5dmt2f15l17w" path="res://Scenes/Exp.tscn" id="2_1dp5w"]
 [ext_resource type="Script" uid="uid://dtli7c7ukojbp" path="res://Scripts/MovementSystem/MovableObject.cs" id="2_287tu"]
 [ext_resource type="Script" uid="uid://da6sqibwe3cw4" path="res://Scripts/MovementSystem/TargetFollower.cs" id="3_afpow"]
+[ext_resource type="Texture2D" uid="uid://bbrg1euhg4oh8" path="res://Assets/Enemy/lod2-7.bmp" id="3_hgeoe"]
 [ext_resource type="Script" uid="uid://bnay44e4hcekj" path="res://Scripts/HealthSystem/HealthManager.cs" id="4_0830c"]
 [ext_resource type="Script" uid="uid://o55wxo12evjj" path="res://Scripts/MovementSystem/DirectionTextureSetter.cs" id="4_auwsv"]
 [ext_resource type="Script" uid="uid://c7y8pwsyi3q13" path="res://Scripts/HealthSystem/Health.cs" id="5_ghaa6"]
-[ext_resource type="Texture2D" uid="uid://pkkorxwussji" path="res://Assets/Enemy/lod2-7plchldr.bmp" id="5_hgeoe"]
-[ext_resource type="Texture2D" uid="uid://cmmkxh80swccj" path="res://Assets/Enemy/lod2-5plchldr.bmp" id="6_tk7xo"]
-[ext_resource type="Texture2D" uid="uid://bry40cfr8ajw8" path="res://Assets/Enemy/lod2-4plchldr.bmp" id="7_scl1n"]
+[ext_resource type="Texture2D" uid="uid://dk0u3wlgeb2w" path="res://Assets/Enemy/lod2-5.bmp" id="5_vt4ob"]
+[ext_resource type="Texture2D" uid="uid://cxr2ap5mnkwxe" path="res://Assets/Enemy/lod2-4.bmp" id="6_hgeoe"]
 [ext_resource type="Texture2D" uid="uid://d16c7typbck5j" path="res://Assets/Enemy/lod2-2.bmp" id="8_dhkrs"]
-[ext_resource type="Texture2D" uid="uid://dvuyrilsl1xrh" path="res://Assets/Enemy/lod2-8plchldr.bmp" id="9_5xdhn"]
+[ext_resource type="Texture2D" uid="uid://c4ki4g85rlb1v" path="res://Assets/Enemy/lod2-8.bmp" id="8_tk7xo"]
 [ext_resource type="Texture2D" uid="uid://l7soxy8dtp3d" path="res://Assets/Enemy/lod2.bmp" id="10_4jyny"]
-[ext_resource type="Texture2D" uid="uid://bj3pjfx44beqp" path="res://Assets/Enemy/lod2-3plchldr.bmp" id="11_vh8xy"]
-[ext_resource type="Texture2D" uid="uid://coeeyp8i6xwce" path="res://Assets/Enemy/lod2-6plchldr.bmp" id="12_qjcj6"]
+[ext_resource type="Texture2D" uid="uid://brmuup315nu1b" path="res://Assets/Enemy/lod2-3.bmp" id="10_scl1n"]
+[ext_resource type="Texture2D" uid="uid://bdfg5ifw2beuf" path="res://Assets/Enemy/lod2-6.bmp" id="11_dhkrs"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cvnsp"]
 size = Vector2(128, 128)
@@ -33,7 +33,7 @@ shape = SubResource("RectangleShape2D_cvnsp")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 scale = Vector2(2.02, 2.02)
-texture = ExtResource("5_hgeoe")
+texture = ExtResource("3_hgeoe")
 
 [node name="Scripts" type="Node" parent="."]
 
@@ -43,7 +43,7 @@ texture = ExtResource("5_hgeoe")
 script = ExtResource("4_auwsv")
 spriteToSetTo = NodePath("../../../Sprite2D")
 movableObject = NodePath("../MovableObject")
-textures = [ExtResource("5_hgeoe"), ExtResource("5_hgeoe"), ExtResource("6_tk7xo"), ExtResource("7_scl1n"), ExtResource("8_dhkrs"), ExtResource("9_5xdhn"), ExtResource("10_4jyny"), ExtResource("11_vh8xy"), ExtResource("12_qjcj6")]
+textures = [ExtResource("3_hgeoe"), ExtResource("3_hgeoe"), ExtResource("5_vt4ob"), ExtResource("6_hgeoe"), ExtResource("8_dhkrs"), ExtResource("8_tk7xo"), ExtResource("10_4jyny"), ExtResource("10_scl1n"), ExtResource("11_dhkrs")]
 
 [node name="MovableObject" type="Node" parent="Scripts/MovementSystem" node_paths=PackedStringArray("rb")]
 script = ExtResource("2_287tu")
