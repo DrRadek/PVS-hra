@@ -26,17 +26,31 @@ public partial class UpgradeMenu : Control
 
         // Create UI structure
         SetAnchorsPreset(LayoutPreset.FullRect);
+        SetAnchor(Side.Left, 0);
+        SetAnchor(Side.Top, 0);
+        SetAnchor(Side.Right, 1);
+        SetAnchor(Side.Bottom, 1);
+        OffsetLeft = 0;
+        OffsetTop = 0;
+        OffsetRight = 0;
+        OffsetBottom = 0;
         Visible = false;
+        
+        // Ensure we render on top
+        ZIndex = 100;
+        MouseFilter = MouseFilterEnum.Stop;
 
         // Semi-transparent background
         var bg = new ColorRect();
         bg.Color = new Color(0, 0, 0, 0.8f);
         bg.SetAnchorsPreset(LayoutPreset.FullRect);
+        bg.MouseFilter = MouseFilterEnum.Stop;
         AddChild(bg);
 
         // Center container
         var centerContainer = new CenterContainer();
         centerContainer.SetAnchorsPreset(LayoutPreset.FullRect);
+        centerContainer.MouseFilter = MouseFilterEnum.Ignore;
         AddChild(centerContainer);
 
         // Panel
@@ -144,7 +158,11 @@ public partial class UpgradeMenu : Control
         Visible = true;
         GetTree().Paused = true;
         
+        // Ensure we're on top of everything
+        MoveToFront();
+        
         GD.Print($"UpgradeMenu: Showing {selectedUpgrades.Count} upgrade options, game paused");
+        GD.Print($"UpgradeMenu: Visible={Visible}, Position={GlobalPosition}, Size={Size}, Parent={GetParent()?.Name}");
     }
 
     private List<UpgradeOption> GeneratePossibleUpgrades()
@@ -288,6 +306,8 @@ public partial class UpgradeMenu : Control
     private void CreateUpgradeButton(UpgradeOption upgrade)
     {
         var button = new Button();
+        button.ProcessMode = ProcessModeEnum.Always;
+        button.MouseFilter = MouseFilterEnum.Stop;
         button.CustomMinimumSize = new Vector2(0, 80);
         
         var vbox = new VBoxContainer();
