@@ -179,6 +179,7 @@ public partial class UpgradeMenu : Control
             Name = "More Health",
             Description = "+25 Max HP and heal to full",
             IsLimited = false,
+            OpensPauseMenu = false,
             Action = () => player?.UpgradeMaxHealth(25)
         });
 
@@ -188,6 +189,7 @@ public partial class UpgradeMenu : Control
             Name = "Faster Movement",
             Description = "+20% movement speed",
             IsLimited = false,
+            OpensPauseMenu = false,
             Action = () => player?.UpgradeSpeed(0.2f)
         });
 
@@ -197,6 +199,7 @@ public partial class UpgradeMenu : Control
             Name = "Passive Regeneration",
             Description = "+2 HP per second regeneration",
             IsLimited = false,
+            OpensPauseMenu = false,
             Action = () => player?.UpgradePassiveRegen(2.0f)
         });
 
@@ -206,6 +209,7 @@ public partial class UpgradeMenu : Control
             Name = "Global Damage Boost",
             Description = "+20% damage to all attacks",
             IsLimited = false,
+            OpensPauseMenu = false,
             Action = () => functionsManager?.UpgradeGlobalDamage(0.2f)
         });
 
@@ -225,6 +229,7 @@ public partial class UpgradeMenu : Control
                     Name = $"Unlock Trajectory: {trajFunc.Description}",
                     Description = "New projectile trajectory pattern",
                     IsLimited = true,
+                    OpensPauseMenu = true,
                     Action = () => functionsManager?.UnlockTrajectoryFunction(capturedIndex)
                 });
             }
@@ -244,6 +249,7 @@ public partial class UpgradeMenu : Control
                     Name = $"Unlock Damage: {dmgFunc.Description}",
                     Description = "New damage calculation formula",
                     IsLimited = true,
+                    OpensPauseMenu = true,
                     Action = () => functionsManager?.UnlockDamageFunction(capturedIndex)
                 });
             }
@@ -264,6 +270,7 @@ public partial class UpgradeMenu : Control
                     Name = $"Increase Damage (Lv {currentLevel}/3)",
                     Description = "Boost damage multiplier for your weapon",
                     IsLimited = true,
+                    OpensPauseMenu = false,
                     Action = () => functionsManager?.UpgradeAttackDamage(capturedIndex)
                 });
             }
@@ -283,6 +290,7 @@ public partial class UpgradeMenu : Control
                     Name = $"Faster Projectiles (Lv {currentLevel}/3)",
                     Description = "Increase projectile speed and fire rate",
                     IsLimited = true,
+                    OpensPauseMenu = false,
                     Action = () => functionsManager?.UpgradeAttackTrajectory(capturedIndex2)
                 });
             }
@@ -296,7 +304,22 @@ public partial class UpgradeMenu : Control
                 Name = "Shoot Backwards",
                 Description = "Unlock the ability to fire behind you",
                 IsLimited = true,
+                OpensPauseMenu = false,
                 Action = () => player?.UnlockBackwardShooting()
+            });
+        }
+
+        // Unlock new attack slot (max 5 slots)
+        if (functionsManager != null && functionsManager.GetAttackCount() < 5)
+        {
+            int currentSlots = functionsManager.GetAttackCount();
+            upgrades.Add(new UpgradeOption
+            {
+                Name = $"Unlock Attack Slot ({currentSlots}/5)",
+                Description = "Add another weapon slot for more firepower",
+                IsLimited = true,
+                OpensPauseMenu = true,
+                Action = () => functionsManager?.AddAttackSlot()
             });
         }
 
@@ -335,11 +358,33 @@ public partial class UpgradeMenu : Control
         // Execute the upgrade
         upgrade.Action?.Invoke();
 
-        // Hide menu and unpause
-        Visible = false;
-        GetTree().Paused = false;
-
         GD.Print($"Upgrade selected: {upgrade.Name}");
+
+        // Hide upgrade menu
+        Visible = false;
+
+        // If this upgrade unlocked a function or slot, open pause menu for configuration
+        if (upgrade.OpensPauseMenu)
+        {
+            GD.Print("Opening pause menu for function selection...");
+            // Keep game paused and open pause menu
+            var pauseMenu = GetTree().Root.FindChild("PauseMenu", true, false) as Control;
+            if (pauseMenu != null)
+            {
+                pauseMenu.Visible = true;
+                // Game stays paused
+            }
+            else
+            {
+                GD.PrintErr("PauseMenu not found! Unpausing game.");
+                GetTree().Paused = false;
+            }
+        }
+        else
+        {
+            // Normal upgrade, unpause and continue
+            GetTree().Paused = false;
+        }
     }
 
     private class UpgradeOption
@@ -348,5 +393,6 @@ public partial class UpgradeMenu : Control
         public string Description { get; set; }
         public Action Action { get; set; }
         public bool IsLimited { get; set; } = false;
+        public bool OpensPauseMenu { get; set; } = false;
     }
 }

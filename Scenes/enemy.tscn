@@ -27,6 +27,7 @@ script = ExtResource("1_ghaa6")
 healthManagerLocation = NodePath("Scripts/HealthManager")
 targetFollower = NodePath("Scripts/MovementSystem/TargetFollower")
 exp = ExtResource("2_1dp5w")
+baseExpDropAmount = 1000
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_cvnsp")

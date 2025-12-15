@@ -24,6 +24,9 @@ public partial class FunctionsManager : Node
 
     public override void _Ready()
     {
+        // Ensure this node respects pause mode (don't process when paused)
+        ProcessMode = ProcessModeEnum.Pausable;
+        
         mouseRotator = new MouseRotator(rotationNode);
 
         // Initialize with constant functions (player starts basic)
@@ -185,6 +188,43 @@ public partial class FunctionsManager : Node
     public float GetGlobalDamageMultiplier()
     {
         return globalDamageMultiplier;
+    }
+
+    // Add a new attack slot (max 5 total)
+    public bool AddAttackSlot()
+    {
+        if (usedAttacks.Count >= 5)
+        {
+            GD.Print("FunctionsManager: Already at max attack slots (5)");
+            return false;
+        }
+
+        if (projectileScenes.Count == 0)
+        {
+            GD.PrintErr("FunctionsManager: No projectile scenes available");
+            return false;
+        }
+
+        // Use first unlocked functions
+        var traj = unlockedTrajectoryFunctions.Count > 0 ? unlockedTrajectoryFunctions[0] : new ConstantTrajectoryFunction();
+        var dmg = unlockedDamageFunctions.Count > 0 ? unlockedDamageFunctions[0] : new ConstantDamageFunction();
+
+        var newAttack = new Attack(
+            projectileScenes[0],
+            traj,
+            dmg,
+            rotationNode
+        );
+
+        // Set rotation offset for variety
+        float angleOffset = (Mathf.Tau / (usedAttacks.Count + 1)) * 0.3f;
+        newAttack.RotationOffset = angleOffset * (usedAttacks.Count % 2 == 0 ? 1 : -1);
+
+        usedAttacks.Add(newAttack);
+        if (attacksEnabled) newAttack.Enable();
+
+        GD.Print($"FunctionsManager: Added attack slot {usedAttacks.Count}/5");
+        return true;
     }
 
     // Replace functions on a given attack slot (creates a new Attack instance preserving upgrade level)
@@ -457,12 +497,23 @@ public partial class FunctionsManager : Node
                 shotTimer -= delta;
                 while (shotsRemaining > 0 && shotTimer <= 0f)
                 {
-                    FireProjectile(angle, true);
                     FireProjectile(angle, false);
+                    // Only fire backward if unlocked
+                    if (CanShootBackwards())
+                    {
+                        FireProjectile(angle, true);
+                    }
                     shotsRemaining--;
                     shotTimer += BurstDelay;
                 }
             }
+        }
+
+        private bool CanShootBackwards()
+        {
+            // Get player reference to check backward shooting ability
+            var player = rotationNode?.GetTree()?.GetFirstNodeInGroup("player") as Player;
+            return player != null && player.CanShootBackwards();
         }
 
         private void FireProjectile(float angle, bool reverse = false)

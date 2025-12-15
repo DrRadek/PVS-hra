@@ -46,6 +46,49 @@ public partial class PauseMenu : Control
     // store raw function-space damage values (before normalization)
     private float[] lastRawDmgValues = null;
 
+    private bool wasVisible = false;
+
+    public override void _Notification(int what)
+    {
+        if (what == NotificationVisibilityChanged)
+        {
+            // Only refresh when transitioning from hidden to visible
+            if (Visible && !wasVisible)
+            {
+                GD.Print("PauseMenu: Became visible, refreshing lists...");
+                RefreshFunctionLists();
+            }
+            wasVisible = Visible;
+        }
+    }
+
+    public void RefreshFunctionLists()
+    {
+        if (functionsManager == null) return;
+        
+        GD.Print("PauseMenu: Refreshing function lists...");
+        
+        // Repopulate the lists to show newly unlocked functions
+        PopulateLists();
+        
+        // Update attack count in case new slots were added
+        int newAtkCount = functionsManager.GetAttackCount();
+        if (newAtkCount != (selectedTraj?.Length ?? 0))
+        {
+            GD.Print($"PauseMenu: Attack count changed to {newAtkCount}, recreating selectors");
+            selectedTraj = new int[newAtkCount];
+            selectedDmg = new int[newAtkCount];
+            for (int i = 0; i < newAtkCount; i++) 
+            { 
+                selectedTraj[i] = -1; 
+                selectedDmg[i] = -1; 
+            }
+            CreateSelectors(newAtkCount);
+            // Position the new selectors properly
+            CallDeferred(nameof(DeferredPositionShipAndSelector));
+        }
+    }
+
     public override void _Ready()
     {
         // safe node lookups: scene may have been edited/undone, support both with and without background parent
@@ -151,9 +194,14 @@ public partial class PauseMenu : Control
             toggleManageButton = new Button();
             toggleManageButton.Name = "TopToggle";
             toggleManageButton.Text = "Main Menu";
-            toggleManageButton.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopWide);
-            toggleManageButton.CustomMinimumSize = new Vector2(160, 28);
-            toggleManageButton.OffsetTop = 8;
+            toggleManageButton.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.CenterTop);
+            toggleManageButton.CustomMinimumSize = new Vector2(140, 35);
+            toggleManageButton.Position = new Vector2(-70, 10); // Center by offsetting half width
+            
+            // Make it prettier
+            toggleManageButton.AddThemeColorOverride("font_color", Colors.White);
+            toggleManageButton.AddThemeFontSizeOverride("font_size", 16);
+            
             AddChild(toggleManageButton);
         }
 
@@ -163,9 +211,13 @@ public partial class PauseMenu : Control
             exitButton.Name = "BottomExit";
             exitButton.Text = "Exit";
             exitButton.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.BottomLeft);
-            exitButton.CustomMinimumSize = new Vector2(120, 32);
-            exitButton.OffsetLeft = 8;
-            exitButton.OffsetBottom = 8;
+            exitButton.CustomMinimumSize = new Vector2(120, 35);
+            exitButton.Position = new Vector2(10, -45);
+            
+            // Make it prettier
+            exitButton.AddThemeColorOverride("font_color", Colors.White);
+            exitButton.AddThemeFontSizeOverride("font_size", 16);
+            
             AddChild(exitButton);
         }
 
@@ -175,9 +227,13 @@ public partial class PauseMenu : Control
             restartButton.Name = "BottomRestart";
             restartButton.Text = "Restart";
             restartButton.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.BottomRight);
-            restartButton.CustomMinimumSize = new Vector2(120, 32);
-            restartButton.OffsetRight = 8;
-            restartButton.OffsetBottom = 8;
+            restartButton.CustomMinimumSize = new Vector2(120, 35);
+            restartButton.Position = new Vector2(-130, -45);
+            
+            // Make it prettier
+            restartButton.AddThemeColorOverride("font_color", Colors.White);
+            restartButton.AddThemeFontSizeOverride("font_size", 16);
+            
             AddChild(restartButton);
         }
 
