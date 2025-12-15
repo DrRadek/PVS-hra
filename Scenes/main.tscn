@@ -1,16 +1,19 @@
-[gd_scene load_steps=26 format=3 uid="uid://bg4vt12bvfg0f"]
+[gd_scene load_steps=29 format=3 uid="uid://bg4vt12bvfg0f"]
 
 [ext_resource type="Script" uid="uid://dwbc86tta5cs3" path="res://Scripts/GameManager.cs" id="1_8gbba"]
 [ext_resource type="PackedScene" uid="uid://d1mseb2rcga46" path="res://Scenes/player.tscn" id="1_r150o"]
 [ext_resource type="PackedScene" uid="uid://b8vp0fwf6vtkx" path="res://Scenes/enemy.tscn" id="2_idj7w"]
 [ext_resource type="Texture2D" uid="uid://cxayvvhakmsai" path="res://Assets/temp/blok.bmp" id="4_d1ilt"]
-[ext_resource type="Texture2D" uid="uid://emxyup4etlkt" path="res://Assets/Background/pozadí 1.bmp" id="4_hptm8"]
-[ext_resource type="Texture2D" uid="uid://bo4gutwle3onu" path="res://Assets/Background/střední pozadí.bmp" id="5_hptm8"]
+[ext_resource type="Texture2D" uid="uid://csdtylk5odf1d" path="res://Assets/Background/pozadí 1.bmp" id="4_hptm8"]
+[ext_resource type="Texture2D" uid="uid://csqilpaca87o1" path="res://Assets/Background/střední pozadí.bmp" id="5_hptm8"]
 [ext_resource type="Script" uid="uid://4cpqp3133q7y" path="res://Scripts/Helpers/BackgroundMover.cs" id="6_21xkr"]
 [ext_resource type="Texture2D" uid="uid://7xn7dvo628j1" path="res://icon.svg" id="7_6bp64"]
 [ext_resource type="Script" uid="uid://c7scn8jlrlgml" path="res://Scripts/UI/GameUI.cs" id="8_344ge"]
 [ext_resource type="Script" uid="uid://dyl7hu2tslur8" path="res://Scripts/UI/PauseMenu.cs" id="9_pause"]
-[ext_resource type="Texture2D" uid="uid://c8huqnsekrcsd" path="res://Assets/Player/lod1-4.bmp" id="10_lod14"]
+[ext_resource type="Texture2D" uid="uid://b0mnpebvwineo" path="res://Assets/Player/lod1-4.bmp" id="10_lod14"]
+[ext_resource type="Script" path="res://Scripts/ScoreManager.cs" id="12_6iyac"]
+[ext_resource type="Script" path="res://Scripts/UI/UpgradeMenu.cs" id="13_fdnlq"]
+[ext_resource type="Script" path="res://Scripts/UI/EndScreen.cs" id="14_jkdf5"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_d1ilt"]
 size = Vector2(9632, 32)
@@ -214,6 +217,16 @@ offset_bottom = 20.0
 text = "level x (x xp)"
 label_settings = SubResource("LabelSettings_hptm8")
 
+[node name="scoreLabel" type="Label" parent="GameUI/top/xp2"]
+layout_mode = 0
+offset_left = 1042.0
+offset_top = -1.0
+offset_right = 1151.0
+offset_bottom = 22.0
+text = "score x"
+label_settings = SubResource("LabelSettings_hptm8")
+horizontal_alignment = 2
+
 [node name="FunctionSelectionManagerButton" type="Button" parent="GameUI"]
 visible = false
 anchors_preset = 10
@@ -275,12 +288,13 @@ offset_bottom = 20.0
 text = "hp x/y"
 label_settings = SubResource("LabelSettings_d1ilt")
 
-[node name="GameUIManager" type="Node" parent="GameUI" node_paths=PackedStringArray("levelLabel", "levelProgressBar", "hpLabel", "hpProgressBar")]
+[node name="GameUIManager" type="Node" parent="GameUI" node_paths=PackedStringArray("levelLabel", "levelProgressBar", "hpLabel", "hpProgressBar", "scoreLabel")]
 script = ExtResource("8_344ge")
 levelLabel = NodePath("../top/xp2/Label2")
 levelProgressBar = NodePath("../top/xp2")
 hpLabel = NodePath("../bottom/health2/Label2")
 hpProgressBar = NodePath("../bottom/health2")
+scoreLabel = NodePath("../top/xp2/scoreLabel")
 
 [node name="PauseMenu" type="Control" parent="GameUI"]
 visible = false
@@ -387,3 +401,24 @@ offset_top = -20.0
 offset_bottom = -20.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+
+[node name="ScoreManager" type="Node" parent="."]
+script = ExtResource("12_6iyac")
+
+[node name="UpgradeMenu" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("13_fdnlq")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("14_jkdf5")

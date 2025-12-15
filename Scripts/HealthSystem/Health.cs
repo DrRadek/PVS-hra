@@ -12,8 +12,13 @@ public partial class Health : AbstractHealth
 
     public override void _Ready()
     {
-        if (updateGlobalGameUI)
+        // Ensure health starts at max
+        health = maxHealth;
+        
+        if (updateGlobalGameUI && GameUI.Instance != null)
+        {
             GameUI.Instance.UpdateHp(health, maxHealth);
+        }
     }
 
     public override bool GetHit(float amount, bool isAbsolute = true)
@@ -49,7 +54,19 @@ public partial class Health : AbstractHealth
         // absolute = true => heal exactly the amount
         // absolute = false => heal percentage
         health += isAbsolute ? amount : maxHealth * amount;
+        health = Mathf.Min(health, maxHealth);
 
+        if (updateGlobalGameUI)
+        {
+            GameUI.Instance.UpdateHp(health, maxHealth);
+        }
+    }
+
+    public void IncreaseMaxHealth(float amount)
+    {
+        maxHealth += amount;
+        health = maxHealth; // Heal to full
+        
         if (updateGlobalGameUI)
         {
             GameUI.Instance.UpdateHp(health, maxHealth);

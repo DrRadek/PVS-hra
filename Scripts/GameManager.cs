@@ -13,6 +13,7 @@ public partial class GameManager : Node2D
     [Export] public int   EnemyMaxAlive = 10;
     [Export] public float EnemySpawnMinDistance = 500f; 
     [Export] public float EnemySpawnMaxDistance = 1000f;
+    [Export] public float MapBounds = 4500f; // Max distance from origin
     [Export] BackgroundMover backgroundMover;
 
     private Node2D _player;                 
@@ -109,11 +110,21 @@ public partial class GameManager : Node2D
             {
                 var enemy = EnemyScene.Instantiate<Node2D>();
                 enemy.GlobalPosition = GetEnemySpawnPosition();
+                
+                // Apply difficulty scaling to enemy speed
                 var follower = FindChildRecursive<TargetFollower>(enemy);
                 if (follower != null) {
                     follower.SetTarget(_player);
                     var movable = FindChildRecursive<MovableObject>(enemy);
-                    if (movable != null) follower.SetMovable(movable);
+                    if (movable != null)
+                    {
+                        follower.SetMovable(movable);
+                        
+                        // Scale enemy speed with difficulty
+                        float difficultyMultiplier = ScoreManager.Instance != null ? 
+                            ScoreManager.Instance.GetDifficultyMultiplier() : 1.0f;
+                        movable.SetSpeedMultiplier(difficultyMultiplier);
+                    }
                 }
 
                 GetTree().CurrentScene.AddChild(enemy);
@@ -129,9 +140,24 @@ public partial class GameManager : Node2D
     {
         if (_player == null) return Vector2.Zero;
 
-        float a = GD.Randf() * Mathf.Tau;
-        float d = Mathf.Lerp(EnemySpawnMinDistance, EnemySpawnMaxDistance, GD.Randf());
-        return _player.GlobalPosition + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * d;
+        Vector2 spawnPos;
+        int maxAttempts = 10;
+        int attempts = 0;
+
+        do
+        {
+            float a = GD.Randf() * Mathf.Tau;
+            float d = Mathf.Lerp(EnemySpawnMinDistance, EnemySpawnMaxDistance, GD.Randf());
+            spawnPos = _player.GlobalPosition + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * d;
+            attempts++;
+        }
+        while ((Mathf.Abs(spawnPos.X) > MapBounds || Mathf.Abs(spawnPos.Y) > MapBounds) && attempts < maxAttempts);
+
+        // Clamp to bounds if still outside
+        spawnPos.X = Mathf.Clamp(spawnPos.X, -MapBounds, MapBounds);
+        spawnPos.Y = Mathf.Clamp(spawnPos.Y, -MapBounds, MapBounds);
+
+        return spawnPos;
     }
 
     private T FindChildRecursive<T>(Node root) where T : class

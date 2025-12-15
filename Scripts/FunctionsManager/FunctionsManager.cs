@@ -18,6 +18,7 @@ public partial class FunctionsManager : Node
     private List<DamageFunction> lockedDamageFunctions = new();
 
     private bool attacksEnabled = false;
+    private float globalDamageMultiplier = 1.0f;
 
     MouseRotator mouseRotator;
 
@@ -25,39 +26,36 @@ public partial class FunctionsManager : Node
     {
         mouseRotator = new MouseRotator(rotationNode);
 
-        // Example reusable functions
-        var traj = new SinTrajectoryFunction();
-        var dmg = new SinDamageFunction();
+        // Initialize with constant functions (player starts basic)
+        var constTraj = new ConstantTrajectoryFunction();
+        var constDmg = new ConstantDamageFunction();
 
-        var traj2 = new CosTrajectoryFunction();
-        var dmg2 = new CosDamageFunction();
+        unlockedTrajectoryFunctions.Add(constTraj);
+        unlockedDamageFunctions.Add(constDmg);
 
-        unlockedTrajectoryFunctions.Add(traj);
-        unlockedDamageFunctions.Add(dmg);
+        // Lock all advanced functions - they can be unlocked via upgrades
+        lockedTrajectoryFunctions.Add(new SinTrajectoryFunction());
+        lockedTrajectoryFunctions.Add(new CosTrajectoryFunction());
+        lockedTrajectoryFunctions.Add(new LinearTrajectoryFunction());
+        lockedTrajectoryFunctions.Add(new QuadraticTrajectoryFunction());
+        lockedTrajectoryFunctions.Add(new LogarithmicTrajectoryFunction());
 
-        unlockedTrajectoryFunctions.Add(traj2);
-        unlockedDamageFunctions.Add(dmg2);
+        lockedDamageFunctions.Add(new SinDamageFunction());
+        lockedDamageFunctions.Add(new CosDamageFunction());
+        lockedDamageFunctions.Add(new LinearDamageFunction());
+        lockedDamageFunctions.Add(new QuadraticDamageFunction());
+        lockedDamageFunctions.Add(new LogarithmicDamageFunction());
 
         if (projectileScenes.Count > 0)
         {
             var atk = new Attack(
                 projectileScenes[0],
-                traj,
-                dmg,
+                constTraj,
+                constDmg,
                 rotationNode
             );
 
             usedAttacks.Add(atk);
-
-            var atk2 = new Attack(
-                projectileScenes[0],
-                traj2,
-                dmg2,
-                rotationNode
-            );
-
-
-            usedAttacks.Add(atk2);
         }
 
         EnableAll();
@@ -103,6 +101,90 @@ public partial class FunctionsManager : Node
     public IReadOnlyList<DamageFunction> GetUnlockedDamageFunctions()
     {
         return unlockedDamageFunctions.AsReadOnly();
+    }
+
+    public IReadOnlyList<TrajectoryFunction> GetLockedTrajectoryFunctions()
+    {
+        return lockedTrajectoryFunctions.AsReadOnly();
+    }
+
+    public IReadOnlyList<DamageFunction> GetLockedDamageFunctions()
+    {
+        return lockedDamageFunctions.AsReadOnly();
+    }
+
+    // Unlock a trajectory function from locked to unlocked
+    public bool UnlockTrajectoryFunction(int lockedIndex)
+    {
+        if (lockedIndex < 0 || lockedIndex >= lockedTrajectoryFunctions.Count) return false;
+        
+        var func = lockedTrajectoryFunctions[lockedIndex];
+        lockedTrajectoryFunctions.RemoveAt(lockedIndex);
+        unlockedTrajectoryFunctions.Add(func);
+        return true;
+    }
+
+    // Unlock a damage function from locked to unlocked
+    public bool UnlockDamageFunction(int lockedIndex)
+    {
+        if (lockedIndex < 0 || lockedIndex >= lockedDamageFunctions.Count) return false;
+        
+        var func = lockedDamageFunctions[lockedIndex];
+        lockedDamageFunctions.RemoveAt(lockedIndex);
+        unlockedDamageFunctions.Add(func);
+        return true;
+    }
+
+    // Upgrade a specific attack slot's damage (max level 3)
+    public bool UpgradeAttackDamage(int attackIndex)
+    {
+        if (attackIndex < 0 || attackIndex >= usedAttacks.Count) return false;
+        var attack = usedAttacks[attackIndex];
+        if (attack.Damage != null && attack.Damage.UpgradeLevel < 3)
+        {
+            attack.Damage.UpgradeLevel++;
+            return true;
+        }
+        return false;
+    }
+
+    // Upgrade a specific attack slot's trajectory/speed (max level 3)
+    public bool UpgradeAttackTrajectory(int attackIndex)
+    {
+        if (attackIndex < 0 || attackIndex >= usedAttacks.Count) return false;
+        var attack = usedAttacks[attackIndex];
+        if (attack.UpgradeLevel < 3)
+        {
+            attack.UpgradeLevel++;
+            return true;
+        }
+        return false;
+    }
+
+    // Get upgrade level for attack damage
+    public int GetAttackDamageLevel(int attackIndex)
+    {
+        if (attackIndex < 0 || attackIndex >= usedAttacks.Count) return 0;
+        return usedAttacks[attackIndex].Damage?.UpgradeLevel ?? 0;
+    }
+
+    // Get upgrade level for attack trajectory
+    public int GetAttackTrajectoryLevel(int attackIndex)
+    {
+        if (attackIndex < 0 || attackIndex >= usedAttacks.Count) return 0;
+        return usedAttacks[attackIndex].UpgradeLevel;
+    }
+
+    // Upgrade global damage multiplier (unlimited)
+    public void UpgradeGlobalDamage(float amount)
+    {
+        globalDamageMultiplier += amount;
+        GD.Print($"\"Global damage multiplier increased to {globalDamageMultiplier}x\")");
+    }
+
+    public float GetGlobalDamageMultiplier()
+    {
+        return globalDamageMultiplier;
     }
 
     // Replace functions on a given attack slot (creates a new Attack instance preserving upgrade level)
@@ -218,6 +300,78 @@ public partial class FunctionsManager : Node
         {
             functionDefinition = (x) => Mathf.Abs(Mathf.Cos(x)) * upgradeLevel + upgradeLevel;
             description = $"{upgradeLevel}+|cos(x)|*{upgradeLevel}";
+        }
+    }
+
+    public class ConstantDamageFunction : DamageFunction
+    {
+        public ConstantDamageFunction()
+        {
+            functionDefinition = (x) => 2.0f * upgradeLevel;
+            description = $"2*{upgradeLevel}";
+        }
+    }
+
+    public class LinearDamageFunction : DamageFunction
+    {
+        public LinearDamageFunction()
+        {
+            functionDefinition = (x) => Mathf.Abs(x * 0.5f) * upgradeLevel + upgradeLevel;
+            description = $"{upgradeLevel}+|0.5x|*{upgradeLevel}";
+        }
+    }
+
+    public class QuadraticDamageFunction : DamageFunction
+    {
+        public QuadraticDamageFunction()
+        {
+            functionDefinition = (x) => (x * x * 0.2f) * upgradeLevel + upgradeLevel;
+            description = $"{upgradeLevel}+0.2x²*{upgradeLevel}";
+        }
+    }
+
+    public class LogarithmicDamageFunction : DamageFunction
+    {
+        public LogarithmicDamageFunction()
+        {
+            functionDefinition = (x) => Mathf.Max(0, Mathf.Log(Mathf.Abs(x) + 1) * 2.0f) * upgradeLevel + upgradeLevel;
+            description = $"{upgradeLevel}+2log(|x|+1)*{upgradeLevel}";
+        }
+    }
+
+    public class ConstantTrajectoryFunction : TrajectoryFunction
+    {
+        public ConstantTrajectoryFunction()
+        {
+            functionDefinition = (x) => 0.0f;
+            description = "0 (straight)";
+        }
+    }
+
+    public class LinearTrajectoryFunction : TrajectoryFunction
+    {
+        public LinearTrajectoryFunction()
+        {
+            functionDefinition = (x) => x * 0.3f;
+            description = "0.3x";
+        }
+    }
+
+    public class QuadraticTrajectoryFunction : TrajectoryFunction
+    {
+        public QuadraticTrajectoryFunction()
+        {
+            functionDefinition = (x) => x * x * 0.1f;
+            description = "0.1x²";
+        }
+    }
+
+    public class LogarithmicTrajectoryFunction : TrajectoryFunction
+    {
+        public LogarithmicTrajectoryFunction()
+        {
+            functionDefinition = (x) => Mathf.Log(Mathf.Abs(x) + 1) * 0.5f;
+            description = "0.5log(|x|+1)";
         }
     }
 

@@ -6,7 +6,8 @@ public partial class Enemy : RigidBody2D, IHittable
     [Export] NodePath healthManagerLocation;
     [Export] TargetFollower targetFollower;
     [Export] PackedScene exp;
-    [Export] int expDropAmount = 10; // TODO: move somewhere else?
+    [Export] int baseExpDropAmount = 10;
+    [Export] int baseScoreReward = 50;
 
     [Export] Node2D target;
     AbstractHealthManager healthManager;
@@ -28,14 +29,23 @@ public partial class Enemy : RigidBody2D, IHittable
     {
         if (body is IHittable hittable && body is Player)
         {
-            hittable.GetHit(1, true);
+            // Scale damage with difficulty
+            float damageMultiplier = ScoreManager.Instance != null ? ScoreManager.Instance.GetDifficultyMultiplier() : 1.0f;
+            hittable.GetHit(1 * damageMultiplier, true);
         }
     }
 
     void OnDeath()
     {
+        // Award score
+        if (ScoreManager.Instance != null)
+        {
+            ScoreManager.Instance.AddScore(baseScoreReward);
+        }
+
+        // Drop XP
         Exp expNode = (Exp)exp.Instantiate();
-        expNode.Init(expDropAmount);
+        expNode.Init(baseExpDropAmount);
         expNode.Position = GlobalPosition;
         GameManager.Instance.storageNode.CallDeferred("add_child", expNode);
 
