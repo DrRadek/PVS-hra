@@ -68,6 +68,8 @@ public partial class FunctionsManager : Node
     {
         var rotation = mouseRotator.calculateRotation();
 
+        // Normalize rotation to -90 to 90 degree range
+        // Flip scale when aiming backwards
         if (Math.Abs(rotation) <= Mathf.Abs(Mathf.Pi/2))
         {
             rotationNode.Scale = new Vector2(1 * Mathf.Abs(rotationNode.Scale.X), rotationNode.Scale.Y);
@@ -75,6 +77,13 @@ public partial class FunctionsManager : Node
         else
         {
             rotationNode.Scale = new Vector2(-1 * Mathf.Abs(rotationNode.Scale.X), rotationNode.Scale.Y);
+            // Normalize rotation to -90 to 90 range when facing left
+            // Subtract π to bring angle back to right-facing equivalent
+            // 180° becomes 0°, 135° becomes -45°, 225° becomes 45°
+            if (rotation > Mathf.Pi/2)
+                rotation = rotation - Mathf.Pi;
+            else if (rotation < -Mathf.Pi/2)
+                rotation = rotation + Mathf.Pi;
         }
 
         if (!attacksEnabled)
@@ -532,6 +541,7 @@ public partial class FunctionsManager : Node
             GameManager.Instance.storageNode.AddChild(helperNode);
             helperNode.GlobalPosition = rotationNode.GlobalPosition;
             helperNode.GlobalRotation = angle + RotationOffset;
+            // Copy scale - the negative X scale flips projectile direction when facing left
             helperNode.Scale = rotationNode.Scale;
 
             helperNode.AddChild(inst);
