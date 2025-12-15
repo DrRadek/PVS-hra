@@ -76,13 +76,17 @@ public partial class PauseMenu : Control
         if (newAtkCount != (selectedTraj?.Length ?? 0))
         {
             GD.Print($"PauseMenu: Attack count changed to {newAtkCount}, recreating selectors");
+            int oldCount = selectedTraj?.Length ?? 0;
             selectedTraj = new int[newAtkCount];
             selectedDmg = new int[newAtkCount];
+            
+            // Initialize: keep old selections, new slots get first function (index 0)
             for (int i = 0; i < newAtkCount; i++) 
             { 
-                selectedTraj[i] = -1; 
-                selectedDmg[i] = -1; 
+                selectedTraj[i] = 0; // Select first unlocked function by default
+                selectedDmg[i] = 0;
             }
+            
             CreateSelectors(newAtkCount);
             // Position the new selectors properly
             CallDeferred(nameof(DeferredPositionShipAndSelector));
@@ -730,21 +734,24 @@ public partial class PauseMenu : Control
             }
         }
 
-        // normalize damage to trajectory min/max if both present
-        if (trajFn != null && dmgFn != null)
+        // Scale damage values to fit within -1 to 1 range
+        // Find the actual min/max and scale so they fit within [-1, 1]
+        if (dmgFn != null && dmgMax != float.MinValue && dmgMin != float.MaxValue)
         {
-            float trajRange = Mathf.Max(1e-6f, trajMax - trajMin);
-            float dmgRange = Mathf.Max(1e-6f, dmgMax - dmgMin);
+            // Calculate the scale factor needed to fit the range within [-1, 1]
+            float absMax = Mathf.Max(Mathf.Abs(dmgMin), Mathf.Abs(dmgMax));
+            float scaleFactor = absMax > 0 ? 1.0f / absMax : 1.0f;
+            
+            // Apply scaling to all damage points
             for (int i = 0; i < samples; i++)
             {
                 float dmgY = dmgPoints[i].Y;
                 // invert back to function-space value
                 float dmgVal = -dmgY / (100f * renderScale);
-                // normalize into 0..1 relative to dmgMin..dmgMax
-                float norm = (dmgVal - dmgMin) / dmgRange;
-                // map into trajMin..trajMax
-                float mapped = trajMin + norm * trajRange;
-                dmgPoints[i] = new Vector2(dmgPoints[i].X, -mapped * 100f * renderScale);
+                // scale to fit within -1..1
+                float scaled = dmgVal * scaleFactor;
+                // reapply visual scale
+                dmgPoints[i] = new Vector2(dmgPoints[i].X, -scaled * 100f * renderScale);
             }
         }
 
