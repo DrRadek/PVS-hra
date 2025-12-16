@@ -236,7 +236,6 @@ text = "level x (x xp)"
 label_settings = SubResource("LabelSettings_hptm8")
 
 [node name="scoreLabel" type="Label" parent="GameUI/top/xp2"]
-visible = false
 layout_mode = 0
 offset_left = 1042.0
 offset_top = -1.0
@@ -307,12 +306,13 @@ offset_bottom = 20.0
 text = "hp x/y"
 label_settings = SubResource("LabelSettings_d1ilt")
 
-[node name="GameUIManager" type="Node" parent="GameUI" node_paths=PackedStringArray("levelLabel", "levelProgressBar", "hpLabel", "hpProgressBar")]
+[node name="GameUIManager" type="Node" parent="GameUI" node_paths=PackedStringArray("levelLabel", "levelProgressBar", "hpLabel", "hpProgressBar", "scoreLabel")]
 script = ExtResource("8_344ge")
 levelLabel = NodePath("../top/xp2/Label2")
 levelProgressBar = NodePath("../top/xp2")
 hpLabel = NodePath("../bottom/health2/Label2")
 hpProgressBar = NodePath("../bottom/health2")
+scoreLabel = NodePath("../top/xp2/scoreLabel")
 
 [node name="PauseMenu" type="Control" parent="GameUI"]
 visible = false
