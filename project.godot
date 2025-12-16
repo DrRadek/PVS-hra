@@ -11,14 +11,14 @@ config_version=5
 [application]
 
 config/name="PVS-hra"
-run/main_scene="uid://bxcyjyekbhefk"
+run/main_scene="uid://btdtrt73sv7cn"
 config/features=PackedStringArray("4.5", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
 [display]
 
 window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
+window/stretch/aspect="keep_width"
 
 [dotnet]
 
