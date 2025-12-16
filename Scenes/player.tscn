@@ -3,21 +3,21 @@
 [ext_resource type="Texture2D" uid="uid://7xn7dvo628j1" path="res://icon.svg" id="1_v0iea"]
 [ext_resource type="Script" uid="uid://du7molj5rieqc" path="res://Scripts/Entities/Player.cs" id="1_x3wgy"]
 [ext_resource type="Script" uid="uid://dtli7c7ukojbp" path="res://Scripts/MovementSystem/MovableObject.cs" id="2_6t5aa"]
-[ext_resource type="Texture2D" uid="uid://cl1h2m88tsufa" path="res://Assets/Player/lod1-7a.bmp" id="2_tx1dd"]
+[ext_resource type="Texture2D" uid="uid://dlx8elup6n4e0" path="res://Assets/Player/lod1-7a.bmp" id="2_tx1dd"]
 [ext_resource type="Script" uid="uid://deps4pfts1dt7" path="res://Scripts/MovementSystem/PlayerMovement.cs" id="3_vgqql"]
 [ext_resource type="Script" uid="uid://bnay44e4hcekj" path="res://Scripts/HealthSystem/HealthManager.cs" id="4_vgqql"]
 [ext_resource type="Script" uid="uid://c7y8pwsyi3q13" path="res://Scripts/HealthSystem/Health.cs" id="5_fkybt"]
 [ext_resource type="Script" uid="uid://o55wxo12evjj" path="res://Scripts/MovementSystem/DirectionTextureSetter.cs" id="6_gymyn"]
 [ext_resource type="Script" uid="uid://o7j6kordxqpq" path="res://Scripts/FunctionsManager/FunctionsManager.cs" id="7_3smsa"]
-[ext_resource type="Texture2D" uid="uid://bhbooqqlgtdgd" path="res://Assets/Player/lod1-5a.bmp" id="7_igrcy"]
+[ext_resource type="Texture2D" uid="uid://bh2gdhbwkipkf" path="res://Assets/Player/lod1-5a.bmp" id="7_igrcy"]
 [ext_resource type="PackedScene" uid="uid://cj8u0e7xp1hge" path="res://Scenes/Projectile.tscn" id="8_8erm5"]
-[ext_resource type="Texture2D" uid="uid://b6sge8rm2a4tg" path="res://Assets/Player/lod1-4.bmp" id="8_fs7ks"]
+[ext_resource type="Texture2D" uid="uid://b0mnpebvwineo" path="res://Assets/Player/lod1-4.bmp" id="8_fs7ks"]
 [ext_resource type="Script" uid="uid://d0c6g1fdx6o5t" path="res://Scripts/CollectibleSystem/CollectibleCollector.cs" id="9_f1ek2"]
-[ext_resource type="Texture2D" uid="uid://chvvwejtgr3fn" path="res://Assets/Player/lod1-2.bmp" id="9_l6n3p"]
-[ext_resource type="Texture2D" uid="uid://c6isiaqro6xua" path="res://Assets/Player/lod1-8a.bmp" id="10_olqyp"]
-[ext_resource type="Texture2D" uid="uid://bwxv2furs74oj" path="res://Assets/Player/lod1.bmp" id="11_wpjfl"]
-[ext_resource type="Texture2D" uid="uid://msowbxx0svg1" path="res://Assets/Player/lod1-3.bmp" id="12_bi64h"]
-[ext_resource type="Texture2D" uid="uid://d3n2l6ql241t5" path="res://Assets/Player/lod1-6a.bmp" id="13_2ijsl"]
+[ext_resource type="Texture2D" uid="uid://de5t6hivb0j84" path="res://Assets/Player/lod1-2.bmp" id="9_l6n3p"]
+[ext_resource type="Texture2D" uid="uid://d3vtwmyarfmb1" path="res://Assets/Player/lod1-8a.bmp" id="10_olqyp"]
+[ext_resource type="Texture2D" uid="uid://cwpnjjsimwnwi" path="res://Assets/Player/lod1.bmp" id="11_wpjfl"]
+[ext_resource type="Texture2D" uid="uid://c3rla2vlnv354" path="res://Assets/Player/lod1-3.bmp" id="12_bi64h"]
+[ext_resource type="Texture2D" uid="uid://cnthx5rlv657l" path="res://Assets/Player/lod1-6a.bmp" id="13_2ijsl"]
 [ext_resource type="Script" uid="uid://j5afaesfucki" path="res://Scripts/XPSystem/LevelManager.cs" id="19_fs7ks"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cvnsp"]
@@ -26,11 +26,12 @@ size = Vector2(128, 128)
 [sub_resource type="CircleShape2D" id="CircleShape2D_f1ek2"]
 radius = 350.0
 
-[node name="player" type="RigidBody2D" node_paths=PackedStringArray("levelManager")]
+[node name="player" type="RigidBody2D" node_paths=PackedStringArray("levelManager") groups=["player"]]
 lock_rotation = true
 script = ExtResource("1_x3wgy")
 healthManagerLocation = NodePath("Scripts/HealthManager")
 functionsManagerLocation = NodePath("Scripts/FunctionsManager")
+movableObjectLocation = NodePath("Scripts/MovementManager/MovableObject")
 levelManager = NodePath("Scripts/LevelManager")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -79,8 +80,9 @@ health = NodePath("Health")
 
 [node name="Health" type="Node" parent="Scripts/HealthManager" node_paths=PackedStringArray("parentPosition")]
 script = ExtResource("5_fkybt")
-health = 1.0
+health = 3.0
 parentPosition = NodePath("../../..")
+updateGlobalGameUI = true
 
 [node name="FunctionsManager" type="Node" parent="Scripts" node_paths=PackedStringArray("rotationNode")]
 script = ExtResource("7_3smsa")
@@ -96,3 +98,4 @@ area = NodePath("../../CollectibleArea")
 script = ExtResource("19_fs7ks")
 
 [node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(0.5, 0.5)

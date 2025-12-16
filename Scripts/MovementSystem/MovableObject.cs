@@ -16,6 +16,7 @@ public partial class MovableObject : Node
     CurrentDirection lastDirection = CurrentDirection.None;
 
     [Export] float speed = 200;
+    [Export] float baseSpeed = 200;
     [Export] RigidBody2D rb;
 
 
@@ -32,6 +33,8 @@ public partial class MovableObject : Node
                 if (n is RigidBody2D r) rb = r;
             }
         }
+        
+        baseSpeed = speed;
     }
 
     Vector2 MapDirEnumToVector(CurrentDirection dir)
@@ -70,6 +73,13 @@ public partial class MovableObject : Node
             rb.ApplyForce(dir * speed);
         }
     }
+
+    public void SetSpeedMultiplier(float multiplier)
+    {
+        speed = baseSpeed * multiplier;
+    }
+
+    public float GetSpeed() => speed;
 
     public RigidBody2D GetRigidBody2D() => rb;
 }

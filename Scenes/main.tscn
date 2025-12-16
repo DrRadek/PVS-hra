@@ -1,24 +1,144 @@
-[gd_scene load_steps=7 format=3 uid="uid://bg4vt12bvfg0f"]
+[gd_scene load_steps=29 format=3 uid="uid://bg4vt12bvfg0f"]
 
 [ext_resource type="Script" uid="uid://dwbc86tta5cs3" path="res://Scripts/GameManager.cs" id="1_8gbba"]
 [ext_resource type="PackedScene" uid="uid://d1mseb2rcga46" path="res://Scenes/player.tscn" id="1_r150o"]
 [ext_resource type="PackedScene" uid="uid://b8vp0fwf6vtkx" path="res://Scenes/enemy.tscn" id="2_idj7w"]
-[ext_resource type="Texture2D" uid="uid://direqc3foscbk" path="res://Assets/Background/pozadí 1 placeholder.bmp" id="4_jjvhh"]
-[ext_resource type="Texture2D" uid="uid://cpueh36f158mk" path="res://Assets/Background/střední pozadí 1 placeholder.bmp" id="5_kry3j"]
+[ext_resource type="Texture2D" uid="uid://cxayvvhakmsai" path="res://Assets/temp/blok.bmp" id="4_d1ilt"]
+[ext_resource type="Texture2D" uid="uid://csdtylk5odf1d" path="res://Assets/Background/pozadí 1.bmp" id="4_hptm8"]
+[ext_resource type="Texture2D" uid="uid://csqilpaca87o1" path="res://Assets/Background/střední pozadí.bmp" id="5_hptm8"]
 [ext_resource type="Script" uid="uid://4cpqp3133q7y" path="res://Scripts/Helpers/BackgroundMover.cs" id="6_21xkr"]
+[ext_resource type="Texture2D" uid="uid://7xn7dvo628j1" path="res://icon.svg" id="7_6bp64"]
+[ext_resource type="Script" uid="uid://c7scn8jlrlgml" path="res://Scripts/UI/GameUI.cs" id="8_344ge"]
+[ext_resource type="Script" uid="uid://dyl7hu2tslur8" path="res://Scripts/UI/PauseMenu.cs" id="9_pause"]
+[ext_resource type="Texture2D" uid="uid://b0mnpebvwineo" path="res://Assets/Player/lod1-4.bmp" id="10_lod14"]
+[ext_resource type="Script" path="res://Scripts/ScoreManager.cs" id="12_6iyac"]
+[ext_resource type="Script" path="res://Scripts/UI/UpgradeMenu.cs" id="13_fdnlq"]
+[ext_resource type="Script" path="res://Scripts/UI/EndScreen.cs" id="14_jkdf5"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_d1ilt"]
+size = Vector2(9632, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6iyac"]
+size = Vector2(32, 9600)
+
+[sub_resource type="Gradient" id="Gradient_21xkr"]
+offsets = PackedFloat32Array(0)
+colors = PackedColorArray(0.012617188, 0.010181468, 0.010890616, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_6bp64"]
+gradient = SubResource("Gradient_21xkr")
+width = 1152
+height = 20
+
+[sub_resource type="Gradient" id="Gradient_344ge"]
+offsets = PackedFloat32Array(0)
+colors = PackedColorArray(0.9993112, 1, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_ynf5e"]
+gradient = SubResource("Gradient_344ge")
+width = 1152
+height = 40
+
+[sub_resource type="SystemFont" id="SystemFont_344ge"]
+font_names = PackedStringArray("Comic Sans MS")
+multichannel_signed_distance_field = true
+
+[sub_resource type="LabelSettings" id="LabelSettings_hptm8"]
+font = SubResource("SystemFont_344ge")
+font_color = Color(1, 0, 0.14415169, 1)
+
+[sub_resource type="Gradient" id="Gradient_ynf5e"]
+offsets = PackedFloat32Array(0)
+colors = PackedColorArray(1, 0, 0.13486767, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_hptm8"]
+gradient = SubResource("Gradient_ynf5e")
+width = 1152
+height = 20
+
+[sub_resource type="Gradient" id="Gradient_d1ilt"]
+offsets = PackedFloat32Array(0)
+colors = PackedColorArray(0.05724919, 1, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_6iyac"]
+gradient = SubResource("Gradient_d1ilt")
+width = 1152
+height = 40
+
+[sub_resource type="SystemFont" id="SystemFont_ynf5e"]
+font_names = PackedStringArray("Comic Sans MS")
+multichannel_signed_distance_field = true
+
+[sub_resource type="LabelSettings" id="LabelSettings_d1ilt"]
+font = SubResource("SystemFont_ynf5e")
+font_color = Color(0, 0.012617188, 0.007872625, 1)
 
 [node name="Main" type="Node2D" node_paths=PackedStringArray("backgroundMover")]
 script = ExtResource("1_8gbba")
 PlayerScene = ExtResource("1_r150o")
 EnemyScene = ExtResource("2_idj7w")
-backgroundMover = NodePath("CanvasLayer/Control/Control/StředníPozadí1Placeholder/Node")
+backgroundMover = NodePath("background/background/Control/StředníPozadí1Placeholder/Node")
+
+[node name="Pozadí1Placeholder" type="Sprite2D" parent="."]
+position = Vector2(0, 1)
+scale = Vector2(19, 19)
+texture = ExtResource("4_hptm8")
+
+[node name="Node2D" type="Node2D" parent="."]
+
+[node name="StaticBody2D" type="StaticBody2D" parent="Node2D"]
+position = Vector2(0, -4800)
+
+[node name="Blok" type="Sprite2D" parent="Node2D/StaticBody2D"]
+texture_repeat = 2
+texture = ExtResource("4_d1ilt")
+region_enabled = true
+region_rect = Rect2(0, 0, 9632, 32)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Node2D/StaticBody2D"]
+shape = SubResource("RectangleShape2D_d1ilt")
+
+[node name="StaticBody2D2" type="StaticBody2D" parent="Node2D"]
+position = Vector2(0, 4800)
+
+[node name="Blok" type="Sprite2D" parent="Node2D/StaticBody2D2"]
+texture_repeat = 2
+texture = ExtResource("4_d1ilt")
+region_enabled = true
+region_rect = Rect2(0, 0, 9632, 32)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Node2D/StaticBody2D2"]
+shape = SubResource("RectangleShape2D_d1ilt")
+
+[node name="StaticBody2D3" type="StaticBody2D" parent="Node2D"]
+position = Vector2(4800, 0)
+
+[node name="Blok" type="Sprite2D" parent="Node2D/StaticBody2D3"]
+texture_repeat = 2
+texture = ExtResource("4_d1ilt")
+region_enabled = true
+region_rect = Rect2(0, 0, 32, 9568)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Node2D/StaticBody2D3"]
+shape = SubResource("RectangleShape2D_6iyac")
+
+[node name="StaticBody2D4" type="StaticBody2D" parent="Node2D"]
+position = Vector2(-4800, 0)
+
+[node name="Blok" type="Sprite2D" parent="Node2D/StaticBody2D4"]
+texture_repeat = 2
+texture = ExtResource("4_d1ilt")
+region_enabled = true
+region_rect = Rect2(0, 0, 32, 9568)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Node2D/StaticBody2D4"]
+shape = SubResource("RectangleShape2D_6iyac")
 
 [node name="Background" type="Node2D" parent="."]
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
-layer = -1
+[node name="background" type="CanvasLayer" parent="."]
 
-[node name="Control" type="Control" parent="CanvasLayer"]
+[node name="background" type="Control" parent="background"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -26,20 +146,18 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ColorRect" type="ColorRect" parent="CanvasLayer/Control"]
-layout_mode = 0
-offset_right = 1848.0
-offset_bottom = 104.0
-
-[node name="Background1" type="ColorRect" parent="CanvasLayer/Control"]
+[node name="Background1" type="ColorRect" parent="background/background"]
+visible = false
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="Control2" type="Control" parent="CanvasLayer/Control"]
+[node name="Control2" type="Control" parent="background/background"]
+visible = false
 z_index = -1
 z_as_relative = false
 layout_mode = 1
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -47,15 +165,16 @@ anchor_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Pozadí1Placeholder" type="Sprite2D" parent="CanvasLayer/Control/Control2"]
+[node name="Pozadí1Placeholder" type="Sprite2D" parent="background/background/Control2"]
 position = Vector2(0, 1)
-scale = Vector2(7.46, 7.46)
-texture = ExtResource("4_jjvhh")
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("4_hptm8")
 
-[node name="Control" type="Control" parent="CanvasLayer/Control"]
+[node name="Control" type="Control" parent="background/background"]
 z_index = -1
 z_as_relative = false
 layout_mode = 1
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -63,10 +182,243 @@ anchor_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="StředníPozadí1Placeholder" type="Sprite2D" parent="CanvasLayer/Control/Control"]
-scale = Vector2(7.08, 7.08)
-texture = ExtResource("5_kry3j")
+[node name="StředníPozadí1Placeholder" type="Sprite2D" parent="background/background/Control"]
+scale = Vector2(10, 10)
+texture = ExtResource("5_hptm8")
 
-[node name="Node" type="Node" parent="CanvasLayer/Control/Control/StředníPozadí1Placeholder" node_paths=PackedStringArray("backgroundNode")]
+[node name="Node" type="Node" parent="background/background/Control/StředníPozadí1Placeholder" node_paths=PackedStringArray("backgroundNode")]
 script = ExtResource("6_21xkr")
 backgroundNode = NodePath("../..")
+
+[node name="GameUI" type="CanvasLayer" parent="."]
+process_mode = 3
+
+[node name="UpgradeMenu" type="Control" parent="GameUI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("13_fdnlq")
+
+[node name="EndScreen" type="Control" parent="GameUI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("14_jkdf5")
+
+[node name="top" type="Control" parent="GameUI"]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 30.0
+grow_horizontal = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="xp2" type="TextureProgressBar" parent="GameUI/top"]
+layout_mode = 0
+offset_right = 1152.0
+offset_bottom = 20.0
+nine_patch_stretch = true
+texture_under = SubResource("GradientTexture2D_6bp64")
+texture_progress = SubResource("GradientTexture2D_ynf5e")
+
+[node name="Label2" type="Label" parent="GameUI/top/xp2"]
+layout_mode = 0
+offset_top = -3.0
+offset_right = 109.0
+offset_bottom = 20.0
+text = "level x (x xp)"
+label_settings = SubResource("LabelSettings_hptm8")
+
+[node name="scoreLabel" type="Label" parent="GameUI/top/xp2"]
+layout_mode = 0
+offset_left = 1042.0
+offset_top = -1.0
+offset_right = 1151.0
+offset_bottom = 22.0
+text = "score x"
+label_settings = SubResource("LabelSettings_hptm8")
+horizontal_alignment = 2
+
+[node name="FunctionSelectionManagerButton" type="Button" parent="GameUI"]
+visible = false
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 566.0
+offset_right = -450.0
+offset_bottom = 136.0
+grow_horizontal = 2
+scale = Vector2(0.145, 0.145)
+focus_mode = 0
+icon = ExtResource("7_6bp64")
+
+[node name="overlay" type="Control" parent="GameUI"]
+z_index = -1
+z_as_relative = false
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="bottom" type="Control" parent="GameUI"]
+layout_mode = 3
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+metadata/_edit_use_anchors_ = true
+
+[node name="health" type="ColorRect" parent="GameUI/bottom"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 0, 0.06809378, 1)
+
+[node name="health2" type="TextureProgressBar" parent="GameUI/bottom"]
+layout_mode = 0
+offset_top = -20.0
+offset_right = 1152.0
+nine_patch_stretch = true
+texture_under = SubResource("GradientTexture2D_hptm8")
+texture_progress = SubResource("GradientTexture2D_6iyac")
+
+[node name="Label2" type="Label" parent="GameUI/bottom/health2"]
+layout_mode = 0
+offset_top = -3.0
+offset_right = 109.0
+offset_bottom = 20.0
+text = "hp x/y"
+label_settings = SubResource("LabelSettings_d1ilt")
+
+[node name="GameUIManager" type="Node" parent="GameUI" node_paths=PackedStringArray("levelLabel", "levelProgressBar", "hpLabel", "hpProgressBar", "scoreLabel")]
+script = ExtResource("8_344ge")
+levelLabel = NodePath("../top/xp2/Label2")
+levelProgressBar = NodePath("../top/xp2")
+hpLabel = NodePath("../bottom/health2/Label2")
+hpProgressBar = NodePath("../bottom/health2")
+scoreLabel = NodePath("../top/xp2/scoreLabel")
+
+[node name="PauseMenu" type="Control" parent="GameUI"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("9_pause")
+
+[node name="background" type="ColorRect" parent="GameUI/PauseMenu"]
+clip_contents = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -572.0
+offset_top = -300.0
+offset_right = 572.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.42352942, 0.43137255, 0.42745098, 0.5529412)
+
+[node name="LeftPanel" type="Panel" parent="GameUI/PauseMenu/background"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.33
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TrajectoryList" type="ItemList" parent="GameUI/PauseMenu/background/LeftPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="CenterPanel" type="Panel" parent="GameUI/PauseMenu/background"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.33
+anchor_right = 0.66
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ShipPreview" type="Control" parent="GameUI/PauseMenu/background/CenterPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_right = 5.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="ShipSprite" type="Sprite2D" parent="GameUI/PauseMenu/background/CenterPanel/ShipPreview"]
+texture = ExtResource("10_lod14")
+
+[node name="Selector" type="Control" parent="GameUI/PauseMenu/background/CenterPanel/ShipPreview"]
+anchors_preset = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 60.0
+offset_right = 75.99997
+offset_bottom = 16.0
+
+[node name="SelectorRect" type="ColorRect" parent="GameUI/PauseMenu/background/CenterPanel/ShipPreview/Selector"]
+layout_mode = 0
+offset_right = 16.0
+offset_bottom = 16.0
+color = Color(1, 1, 1, 0.6)
+
+[node name="RightPanel" type="Panel" parent="GameUI/PauseMenu/background"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.66
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DamageList" type="ItemList" parent="GameUI/PauseMenu/background/RightPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Tooltip" type="Label" parent="GameUI/PauseMenu/background"]
+layout_mode = 0
+anchor_left = 0.33
+anchor_right = 0.66
+offset_top = -20.0
+offset_bottom = -20.0
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+
+[node name="ScoreManager" type="Node" parent="."]
+script = ExtResource("12_6iyac")

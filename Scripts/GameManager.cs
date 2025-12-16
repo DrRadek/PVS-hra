@@ -13,6 +13,7 @@ public partial class GameManager : Node2D
     [Export] public int   EnemyMaxAlive = 10;
     [Export] public float EnemySpawnMinDistance = 500f; 
     [Export] public float EnemySpawnMaxDistance = 1000f;
+    [Export] public float MapBounds = 4500f; // Max distance from origin
     [Export] BackgroundMover backgroundMover;
 
     private Node2D _player;                 
@@ -27,14 +28,44 @@ public partial class GameManager : Node2D
 
     public override void _Ready()
     {
-        if (Instance == null)
-            Instance = this;
+        if (Instance != null && Instance != this) GD.Print("GameManager: replacing existing Instance");
+        Instance = this;
 
         storageNode = this;
 
         _player = FindExistingPlayer() ?? SpawnPlayer();
         backgroundMover.SetPlayer(_player);
         SpawnLoop();
+    }
+
+    public override void _Input(InputEvent @event)
+    {
+        if (@event is InputEventKey kb && kb.Pressed && !kb.Echo && kb.Keycode == Key.Escape)
+        {
+            TogglePauseMenu();
+        }
+    }
+
+    private void TogglePauseMenu()
+    {
+        // find PauseMenu under GameUI or current scene
+        var pause = GetTree().Root.FindChild("PauseMenu", true, false) as Control;
+        if (pause == null)
+        {
+            GD.Print("GameManager: PauseMenu node not found to toggle");
+            return;
+        }
+
+        bool willShow = false;
+        pause.Visible = willShow;
+        // Pause the scene tree when showing the menu, unpause when hiding
+        GetTree().Paused = willShow;
+        GD.Print($"GameManager: PauseMenu {(willShow?"shown":"hidden")}, Paused={GetTree().Paused}");
+    }
+
+    public override void _ExitTree()
+    {
+        if (Instance == this) Instance = null;
     }
 
     // ——— SPAWN PLAYER —————————————————————————————————————————————
@@ -68,15 +99,32 @@ public partial class GameManager : Node2D
         {
             _alive.RemoveAll(n => !IsInstanceValid(n));
 
+            // skip spawning while the scene is paused
+            if (GetTree().Paused)
+            {
+                await ToSignal(GetTree().CreateTimer(EnemyInterval), "timeout");
+                continue;
+            }
+
             if (_player != null && EnemyScene != null && _alive.Count < EnemyMaxAlive)
             {
                 var enemy = EnemyScene.Instantiate<Node2D>();
                 enemy.GlobalPosition = GetEnemySpawnPosition();
+                
+                // Apply difficulty scaling to enemy speed
                 var follower = FindChildRecursive<TargetFollower>(enemy);
                 if (follower != null) {
                     follower.SetTarget(_player);
                     var movable = FindChildRecursive<MovableObject>(enemy);
-                    if (movable != null) follower.SetMovable(movable);
+                    if (movable != null)
+                    {
+                        follower.SetMovable(movable);
+                        
+                        // Scale enemy speed with difficulty
+                        float difficultyMultiplier = ScoreManager.Instance != null ? 
+                            ScoreManager.Instance.GetDifficultyMultiplier() : 1.0f;
+                        movable.SetSpeedMultiplier(difficultyMultiplier);
+                    }
                 }
 
                 GetTree().CurrentScene.AddChild(enemy);
@@ -92,9 +140,24 @@ public partial class GameManager : Node2D
     {
         if (_player == null) return Vector2.Zero;
 
-        float a = GD.Randf() * Mathf.Tau;
-        float d = Mathf.Lerp(EnemySpawnMinDistance, EnemySpawnMaxDistance, GD.Randf());
-        return _player.GlobalPosition + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * d;
+        Vector2 spawnPos;
+        int maxAttempts = 10;
+        int attempts = 0;
+
+        do
+        {
+            float a = GD.Randf() * Mathf.Tau;
+            float d = Mathf.Lerp(EnemySpawnMinDistance, EnemySpawnMaxDistance, GD.Randf());
+            spawnPos = _player.GlobalPosition + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * d;
+            attempts++;
+        }
+        while ((Mathf.Abs(spawnPos.X) > MapBounds || Mathf.Abs(spawnPos.Y) > MapBounds) && attempts < maxAttempts);
+
+        // Clamp to bounds if still outside
+        spawnPos.X = Mathf.Clamp(spawnPos.X, -MapBounds, MapBounds);
+        spawnPos.Y = Mathf.Clamp(spawnPos.Y, -MapBounds, MapBounds);
+
+        return spawnPos;
     }
 
     private T FindChildRecursive<T>(Node root) where T : class

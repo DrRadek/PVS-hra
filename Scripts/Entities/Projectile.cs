@@ -24,7 +24,16 @@ public partial class Projectile : Area2D
     {
         if (body is IHittable hittable && body is Enemy)
         {
-            hittable.GetHit(damageFunction(distance * reverseMultiplier * 0.01f), true);
+            // Apply global damage multiplier from FunctionsManager
+            float globalMultiplier = 1.0f;
+            var fm = GetTree().GetFirstNodeInGroup("player")?.GetNode<FunctionsManager>("Scripts/FunctionsManager");
+            if (fm != null)
+            {
+                globalMultiplier = fm.GetGlobalDamageMultiplier();
+            }
+            
+            float damage = damageFunction(distance * reverseMultiplier * 0.01f) * globalMultiplier;
+            hittable.GetHit(damage, true);
             GetParent().QueueFree();
         }
     }

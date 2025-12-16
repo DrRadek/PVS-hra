@@ -14,7 +14,7 @@ public partial class BackgroundMover : Node
 
     public override void _Process(double delta)
     {
-        var offset = new Vector2(0.5f, 0.5f) + (player.Position * -0.00005f);
+        var offset = new Vector2(0.5f, 0.5f) + (player.Position * -0.00015f);
         //backgroundNode.Position = (player.GlobalPosition * -0.0001f);
 
         //offset = new Vector2(0.5f, 0.5f);

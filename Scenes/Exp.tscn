@@ -1,22 +1,30 @@
-[gd_scene load_steps=4 format=3 uid="uid://c5dmt2f15l17w"]
+[gd_scene load_steps=8 format=3 uid="uid://c5dmt2f15l17w"]
 
 [ext_resource type="Script" uid="uid://cwq7om8vreh0g" path="res://Scripts/Entities/Exp.cs" id="1_4u4ed"]
 [ext_resource type="Texture2D" uid="uid://7xn7dvo628j1" path="res://icon.svg" id="1_d4adm"]
+[ext_resource type="Texture2D" uid="uid://dmj3lynybr1ei" path="res://Assets/Enemy/trosky-1.bmp" id="2_innri"]
+[ext_resource type="Texture2D" uid="uid://cssma6vr6ojef" path="res://Assets/Enemy/trosky-2.bmp" id="3_nrl87"]
+[ext_resource type="Texture2D" uid="uid://biee6jvkq7uvg" path="res://Assets/Enemy/trosky-3.bmp" id="4_mbkbp"]
+[ext_resource type="Texture2D" uid="uid://dof624s0xoms7" path="res://Assets/Enemy/trosky-4.bmp" id="5_7gybj"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_4u4ed"]
 radius = 15.04
 
-[node name="Exp" type="Area2D"]
+[node name="Exp" type="Area2D" node_paths=PackedStringArray("sprite")]
+scale = Vector2(1.5, 1.5)
 script = ExtResource("1_4u4ed")
+textures = Array[Texture2D]([ExtResource("2_innri"), ExtResource("3_nrl87"), ExtResource("4_mbkbp"), ExtResource("5_7gybj")])
+sprite = NodePath("Icon")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_4u4ed")
 
 [node name="Icon" type="Sprite2D" parent="."]
-scale = Vector2(0.2, 0.2)
-texture = ExtResource("1_d4adm")
+scale = Vector2(1.2, 1.2)
+texture = ExtResource("2_innri")
 
 [node name="CPUParticles2D" type="CPUParticles2D" parent="."]
+emitting = false
 amount = 4
 texture = ExtResource("1_d4adm")
 spread = 180.0
